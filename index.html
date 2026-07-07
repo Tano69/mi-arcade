@@ -72,10 +72,31 @@ body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--tex
 .lb-row .lb-name{flex:1;text-align:left;color:var(--text);padding:0 10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .lb-row .lb-score{color:var(--gold-light);font-weight:700}
 .lb-empty{color:var(--muted);font-size:.8rem;padding:20px;text-align:center}
+.touch-controls{display:none;width:100%;max-width:400px;margin-top:12px;user-select:none;-webkit-user-select:none}
+@media(hover:none) and (pointer:coarse){.touch-controls{display:flex}}
+.tc-dpad{display:grid;grid-template-columns:56px 56px 56px;grid-template-rows:56px 56px 56px;gap:4px;justify-content:center}
+.tc-btn{background:rgba(212,168,67,.12);border:1px solid var(--gold-dark);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--gold);font-size:1.3rem;touch-action:none;-webkit-tap-highlight-color:transparent}
+.tc-btn:active,.tc-btn.pressed{background:rgba(212,168,67,.35)}
+.tc-up{grid-column:2;grid-row:1}
+.tc-left{grid-column:1;grid-row:2}
+.tc-right{grid-column:3;grid-row:2}
+.tc-down{grid-column:2;grid-row:3}
+.tc-shooter{display:flex;align-items:center;justify-content:space-between;width:100%;max-width:400px}
+.tc-lr{display:flex;gap:8px}
+.tc-fire{width:80px;height:80px;border-radius:50%;background:rgba(224,64,80,.15);border:2px solid var(--danger);color:var(--danger);font-size:1.6rem;display:flex;align-items:center;justify-content:center;touch-action:none;-webkit-tap-highlight-color:transparent}
+.tc-fire:active,.tc-fire.pressed{background:rgba(224,64,80,.4)}
 </style>
 </head>
 <body>
 <canvas id="bgCanvas"></canvas>
+<div class="touch-controls" style="justify-content:center">
+  <div class="tc-dpad">
+    <button class="tc-btn tc-up" data-dir="up"><i class="fas fa-caret-up"></i></button>
+    <button class="tc-btn tc-left" data-dir="left"><i class="fas fa-caret-left"></i></button>
+    <button class="tc-btn tc-right" data-dir="right"><i class="fas fa-caret-right"></i></button>
+    <button class="tc-btn tc-down" data-dir="down"><i class="fas fa-caret-down"></i></button>
+  </div>
+</div>
 <div id="toastContainer"></div>
 
 <div id="aliasModal" class="modal-overlay">
@@ -113,6 +134,13 @@ body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--tex
     <div class="hud-item"><div><div class="hud-label">MONEDAS</div><div class="hud-value" id="hudCoins"><i class="fas fa-coins" style="font-size:.7rem"></i> 0</div></div></div>
   </div>
   <canvas id="gameCanvas"></canvas>
+<div class="touch-controls tc-shooter">
+  <div class="tc-lr">
+    <button class="tc-btn" id="invBtnLeft" style="width:56px;height:56px"><i class="fas fa-caret-left"></i></button>
+    <button class="tc-btn" id="invBtnRight" style="width:56px;height:56px"><i class="fas fa-caret-right"></i></button>
+  </div>
+  <button class="tc-fire" id="invBtnFire"><i class="fas fa-bolt"></i></button>
+</div>
   <div class="controls-hint"><i class="fas fa-keyboard"></i> FLECHAS / WASD — P para pausar</div>
 </section>
 
@@ -153,7 +181,14 @@ body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--tex
     <div class="hud-item"><div><div class="hud-label">RECORD</div><div class="hud-value" id="invHi">0</div></div></div>
   </div>
   <canvas id="invCanvas" style="border:2px solid var(--gold-dark);border-radius:4px;background:#000;margin-top:10px"></canvas>
-  <div class="controls-hint"><i class="fas fa-keyboard"></i> FLECHAS / WASD mover — ESPACIO disparar — P pausar</div>
+  <div class="touch-controls tc-shooter">
+  <div class="tc-lr">
+    <button class="tc-btn" id="galBtnLeft" style="width:56px;height:56px"><i class="fas fa-caret-left"></i></button>
+    <button class="tc-btn" id="galBtnRight" style="width:56px;height:56px"><i class="fas fa-caret-right"></i></button>
+  </div>
+  <button class="tc-fire" id="galBtnFire"><i class="fas fa-bolt"></i></button>
+</div>
+<div class="controls-hint"><i class="fas fa-keyboard"></i> FLECHAS / WASD mover — ESPACIO disparar — P pausar</div>
 </section>
 
 <section id="galagaScreen" class="screen">
@@ -165,6 +200,13 @@ body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--tex
     <div class="hud-item"><div><div class="hud-label">RECORD</div><div class="hud-value" id="galHi">0</div></div></div>
   </div>
   <canvas id="galCanvas" style="border:2px solid var(--gold-dark);border-radius:4px;background:#000;margin-top:10px"></canvas>
+<div class="touch-controls tc-shooter">
+  <div class="tc-lr">
+    <button class="tc-btn" id="galBtnLeft" style="width:56px;height:56px"><i class="fas fa-caret-left"></i></button>
+    <button class="tc-btn" id="galBtnRight" style="width:56px;height:56px"><i class="fas fa-caret-right"></i></button>
+  </div>
+  <button class="tc-fire" id="galBtnFire"><i class="fas fa-bolt"></i></button>
+</div>
   <div class="controls-hint"><i class="fas fa-keyboard"></i> FLECHAS / WASD mover — ESPACIO disparar — P pausar</div>
 </section>
 
@@ -1383,6 +1425,61 @@ function switchLBTab(game) {
 function escapeHTML(str) {
   return str.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
+/* ============================
+   CONTROLES TÁCTILES
+   ============================ */
+function bindHold(el, onDown, onUp) {
+  if (!el) return;
+  const start = e => { e.preventDefault(); el.classList.add('pressed'); onDown(); };
+  const end = e => { e.preventDefault(); el.classList.remove('pressed'); if (onUp) onUp(); };
+  el.addEventListener('touchstart', start, {passive:false});
+  el.addEventListener('touchend', end, {passive:false});
+  el.addEventListener('touchcancel', end, {passive:false});
+}
+
+// Pacman: d-pad
+document.querySelectorAll('.tc-dpad .tc-btn').forEach(btn => {
+  bindHold(btn, () => {
+    const dir = btn.dataset.dir;
+    if (activeGameLoop !== 'pacman') return;
+    if (dir==='up'){pacman.ndx=0;pacman.ndy=-1;}
+    else if (dir==='down'){pacman.ndx=0;pacman.ndy=1;}
+    else if (dir==='left'){pacman.ndx=-1;pacman.ndy=0;}
+    else if (dir==='right'){pacman.ndx=1;pacman.ndy=0;}
+  });
+});
+
+// Space Invaders: izquierda / derecha / disparo
+bindHold(document.getElementById('invBtnLeft'),
+  () => invState.keys.left = true, () => invState.keys.left = false);
+bindHold(document.getElementById('invBtnRight'),
+  () => invState.keys.right = true, () => invState.keys.right = false);
+bindHold(document.getElementById('invBtnFire'),
+  () => { invFire(); if (invState.phase === 'gameover') { invReset(); invState.phase='ready'; invState.readyTimer=80; } });
+
+// Galaga: izquierda / derecha / disparo
+bindHold(document.getElementById('galBtnLeft'),
+  () => gal.keys.left = true, () => gal.keys.left = false);
+bindHold(document.getElementById('galBtnRight'),
+  () => gal.keys.right = true, () => gal.keys.right = false);
+bindHold(document.getElementById('galBtnFire'),
+  () => { galFire(); if (gal.phase === 'gameover') galReset(); });
+
+// Swipe alternativo en el canvas de Pacman (además del d-pad)
+(function() {
+  let sx=0, sy=0;
+  canvas.addEventListener('touchstart', e => {
+    const t = e.touches[0]; sx=t.clientX; sy=t.clientY;
+  }, {passive:true});
+  canvas.addEventListener('touchend', e => {
+    if (activeGameLoop !== 'pacman') return;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - sx, dy = t.clientY - sy;
+    if (Math.abs(dx) < 20 && Math.abs(dy) < 20) return;
+    if (Math.abs(dx) > Math.abs(dy)) { pacman.ndx = dx>0?1:-1; pacman.ndy = 0; }
+    else { pacman.ndy = dy>0?1:-1; pacman.ndx = 0; }
+  }, {passive:true});
+})();
 </script>
 </body>
 </html>
