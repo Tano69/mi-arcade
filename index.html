@@ -3,1752 +3,1655 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ARCADE CLASSICS PREMIUM</title>
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght=400;700;900&family=Space+Grotesk:wght=300;400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<title>El Chispa · Cálculos Eléctricos MT/AT</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#08080e;--card:#111119;--border:#222233;--gold:#d4a843;--gold-light:#f0d078;--gold-dark:#8b6914;--text:#e8e8f0;--muted:#666680;--danger:#e04050;--success:#40d870}
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow:hidden;display:flex;align-items:center;justify-content:center}
-#bgCanvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none}
-.screen{position:absolute;top:0;left:0;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:10;opacity:0;pointer-events:none;transition:opacity .4s ease}
-.screen.active{opacity:1;pointer-events:all}
-.logo{font-family:'Orbitron',monospace;font-size:clamp(2rem,6vw,4.5rem);font-weight:900;background:linear-gradient(135deg,var(--gold-light),var(--gold),var(--gold-dark));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:6px;margin-bottom:4px}
-.title{font-family:'Orbitron',monospace;font-size:clamp(2rem,6vw,4.5rem);font-weight:900;background:linear-gradient(135deg,var(--gold-light),var(--gold),var(--gold-dark));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:6px;margin-bottom:4px;text-align:center}
-.subtitle{font-family:'Orbitron',monospace;font-size:clamp(.7rem,2vw,1.1rem);color:var(--gold);letter-spacing:12px;margin-bottom:40px;opacity:.7;text-align:center}
-.btn{font-family:'Orbitron',monospace;font-size:.95rem;font-weight:700;padding:16px 48px;border:2px solid var(--gold);background:transparent;color:var(--gold);cursor:pointer;letter-spacing:3px;transition:all .3s ease;position:relative;overflow:hidden;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-.btn:hover{background:var(--gold);color:var(--bg);box-shadow:0 0 40px rgba(212,168,67,.3)}
-.btn:active{transform:scale(.97)}
-.btn-primary{background:linear-gradient(135deg,var(--gold),var(--gold-dark));color:var(--bg);border-color:var(--gold-light)}
-.btn-primary:hover{background:linear-gradient(135deg,var(--gold-light),var(--gold));box-shadow:0 0 50px rgba(212,168,67,.4)}
-.btn-ghost{border-color:var(--muted);color:var(--muted)}
-.btn-ghost:hover{border-color:var(--text);color:var(--text);background:transparent}
-.features{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;max-width:380px;margin-bottom:36px;width:100%;padding:0 20px}
-.feature{display:flex;align-items:center;gap:10px;font-size:.85rem;color:var(--muted);padding:8px 12px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.04);border-radius:6px}
-.feature i{color:var(--gold);font-size:.75rem;width:16px;text-align:center}
-#gameScreen{flex-direction:column;padding:10px;gap:8px}
-.hud{display:flex;align-items:center;justify-content:space-between;width:100%;max-width:590px;padding:8px 16px;background:var(--card);border:1px solid var(--border);border-radius:8px;z-index:15}
-.hud-item{display:flex;align-items:center;gap:8px;font-family:'Orbitron',monospace;font-size:.8rem}
-.hud-item i{color:var(--gold);font-size:.7rem}
-.hud-label{color:var(--muted);font-size:.6rem;letter-spacing:1px}
-.hud-value{color:var(--gold-light);font-weight:700;font-size:1rem}
-.lives-display{display:flex;gap:4px}
-.life-icon{width:14px;height:14px;background:var(--gold);border-radius:50%;clip-path:polygon(50% 50%,100% 15%,100% 85%);position:relative}
-.life-icon::before{content:'';position:absolute;top:0;left:0;width:14px;height:14px;background:var(--gold);border-radius:50%}
-.life-icon.lost{opacity:.15}
-#gameCanvas{border:2px solid var(--gold-dark);border-radius:4px;background:#000}
-.controls-hint{font-size:.7rem;color:var(--muted);letter-spacing:1px;font-family:'Orbitron',monospace;margin-top:4px}
-#toastContainer{position:fixed;top:20px;right:20px;z-index:3000;display:flex;flex-direction:column;gap:8px}
-.toast{padding:12px 20px;border-radius:6px;font-size:.85rem;font-weight:600;animation:toastIn .3s ease,toastOut .3s ease 2.7s forwards;pointer-events:none}
-.toast-success{background:rgba(64,216,112,.15);border:1px solid var(--success);color:var(--success)}
-.toast-error{background:rgba(224,64,80,.15);border:1px solid var(--danger);color:var(--danger)}
-.toast-info{background:rgba(212,168,67,.15);border:1px solid var(--gold);color:var(--gold-light)}
-@keyframes toastIn{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:translateX(0)}}
-@keyframes toastOut{from{opacity:1}to{opacity:0;transform:translateY(-10px)}}
-.shimmer{position:relative;overflow:hidden}
-.shimmer::after{content:'';position:absolute;top:0;left:-100%;width:50%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.08),transparent);animation:shimmer 3s infinite}
-@keyframes shimmer{0%{left:-100%}100%{left:200%}}
-.back-link{position:absolute;top:24px;left:24px;color:var(--muted);cursor:pointer;font-size:.85rem;transition:color .3s;z-index:20;display:flex;align-items:center;gap:8px;background:none;border:none;font-family:'Space Grotesk',sans-serif}
-.back-link:hover{color:var(--gold)}
-@media(max-width:620px){.features{grid-template-columns:1fr;max-width:280px}.hud{flex-wrap:wrap;gap:8px;justify-content:center}}
-.modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;z-index:2500}
-.modal-overlay.active{display:flex}
-.modal-box{background:var(--card);border:1px solid var(--gold-dark);border-radius:10px;padding:32px;max-width:320px;width:90%;text-align:center;box-shadow:0 0 60px rgba(212,168,67,.15)}
-.modal-title{font-family:'Orbitron';font-size:1.2rem;color:var(--gold-light);letter-spacing:2px;margin-bottom:8px}
-.modal-sub{color:var(--muted);font-size:.85rem;margin-bottom:20px}
-#aliasInput{width:100%;padding:12px 14px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'Space Grotesk';font-size:1rem;outline:none;margin-bottom:20px;text-align:center;letter-spacing:1px}
-#aliasInput:focus{border-color:var(--gold)}
-.modal-actions{display:flex;gap:10px;justify-content:center}
-.tab-btn{padding:10px 18px;font-size:.75rem}
-.tab-btn.active{background:var(--gold);color:var(--bg)}
-.leaderboard-list{width:100%;max-width:380px;display:flex;flex-direction:column;gap:6px;padding:0 20px}
-.lb-row{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.04);border-radius:6px;font-family:'Orbitron';font-size:.85rem}
-.lb-row .lb-rank{color:var(--gold);width:28px}
-.lb-row .lb-name{flex:1;text-align:left;color:var(--text);padding:0 10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.lb-row .lb-score{color:var(--gold-light);font-weight:700}
-.lb-empty{color:var(--muted);font-size:.8rem;padding:20px;text-align:center}
-.touch-controls{display:none;width:100%;max-width:400px;margin-top:12px;user-select:none;-webkit-user-select:none}
-body.is-touch .touch-controls{display:flex}
-@media(hover:none) and (pointer:coarse){.touch-controls{display:flex}}
-.tc-dpad{display:grid;grid-template-columns:56px 56px 56px;grid-template-rows:56px 56px 56px;gap:4px;justify-content:center}
-.tc-btn{background:rgba(212,168,67,.12);border:1px solid var(--gold-dark);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--gold);font-size:1.3rem;touch-action:none;-webkit-tap-highlight-color:transparent}
-.tc-btn:active,.tc-btn.pressed{background:rgba(212,168,67,.35)}
-.tc-up{grid-column:2;grid-row:1}
-.tc-left{grid-column:1;grid-row:2}
-.tc-right{grid-column:3;grid-row:2}
-.tc-down{grid-column:2;grid-row:3}
-.tc-shooter{display:flex;align-items:center;justify-content:space-between;width:100%;max-width:400px}
-.tc-lr{display:flex;gap:8px}
-.tc-fire{width:80px;height:80px;border-radius:50%;background:rgba(224,64,80,.15);border:2px solid var(--danger);color:var(--danger);font-size:1.6rem;display:flex;align-items:center;justify-content:center;touch-action:none;-webkit-tap-highlight-color:transparent}
-.tc-fire:active,.tc-fire.pressed{background:rgba(224,64,80,.4)}
+  :root{
+    --bg:#0A0E13;
+    --panel:#10161D;
+    --panel-alt:#141C24;
+    --border:#243040;
+    --border-soft:#1B242E;
+    --text:#E7EDF3;
+    --text-dim:#8B98A8;
+    --text-faint:#586475;
+    --amber:#F2A93B;
+    --amber-dim:#8A6423;
+    --teal:#3FD0C9;
+    --teal-dim:#1F6E68;
+    --red:#E85C4A;
+    --grid-line: rgba(63,208,201,0.06);
+    --radius: 3px;
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:
+      linear-gradient(180deg, rgba(63,208,201,0.03), transparent 300px),
+      var(--bg);
+    color:var(--text);
+    font-family:'IBM Plex Sans', sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  ::selection{ background:var(--amber); color:#10161D; }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important; }
+  }
+
+  a{ color:var(--teal); }
+
+  .grid-overlay{
+    position:fixed; inset:0; pointer-events:none; z-index:0;
+    background-image:
+      linear-gradient(var(--grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+    background-size: 42px 42px;
+    mask-image: linear-gradient(180deg, black, transparent 900px);
+  }
+
+  /* ---------- HEADER ---------- */
+  header.topbar{
+    position:sticky; top:0; z-index:50;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 28px;
+    background:rgba(10,14,19,0.86);
+    backdrop-filter: blur(10px);
+    border-bottom:1px solid var(--border-soft);
+  }
+  .brand{ display:flex; align-items:center; gap:10px; }
+  .brand-mark{ width:26px; height:26px; flex-shrink:0; }
+  .brand-name{
+    font-family:'Rajdhani', sans-serif;
+    font-weight:700;
+    font-size:1.35rem;
+    letter-spacing:0.04em;
+    color:var(--text);
+  }
+  .brand-name span{ color:var(--amber); }
+  .brand-sub{
+    font-size:0.68rem;
+    color:var(--text-faint);
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    margin-left:10px;
+    padding-left:10px;
+    border-left:1px solid var(--border);
+    font-family:'IBM Plex Mono', monospace;
+  }
+  nav.topnav{ display:flex; gap:22px; }
+  nav.topnav a{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:0.72rem;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--text-dim);
+    text-decoration:none;
+    transition:color .15s;
+  }
+  nav.topnav a:hover{ color:var(--amber); }
+
+  /* ---------- HERO ---------- */
+  .hero{
+    position:relative;
+    padding:74px 28px 54px;
+    max-width:1180px;
+    margin:0 auto;
+    z-index:1;
+  }
+  .hero-inner{
+    display:grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap:40px;
+    align-items:center;
+  }
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:0.72rem;
+    letter-spacing:0.18em;
+    text-transform:uppercase;
+    color:var(--teal);
+    display:flex; align-items:center; gap:10px;
+    margin-bottom:18px;
+  }
+  .eyebrow::before{
+    content:"";
+    width:22px; height:1px; background:var(--teal);
+  }
+  h1.hero-title{
+    font-family:'Rajdhani', sans-serif;
+    font-weight:700;
+    font-size:clamp(2.4rem, 4.4vw, 3.6rem);
+    line-height:1.05;
+    letter-spacing:0.01em;
+    margin:0 0 20px;
+  }
+  h1.hero-title em{
+    font-style:normal;
+    color:var(--amber);
+  }
+  .hero-desc{
+    color:var(--text-dim);
+    font-size:1.02rem;
+    line-height:1.65;
+    max-width:52ch;
+    margin:0 0 30px;
+  }
+  .hero-cta{ display:flex; gap:14px; flex-wrap:wrap; }
+  .btn{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:0.78rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    padding:12px 22px;
+    border-radius:var(--radius);
+    border:1px solid transparent;
+    cursor:pointer;
+    text-decoration:none;
+    display:inline-flex; align-items:center; gap:8px;
+    transition:all .15s;
+  }
+  .btn-primary{
+    background:var(--amber);
+    color:#171008;
+    font-weight:600;
+  }
+  .btn-primary:hover{ background:#ffbc55; }
+  .btn-ghost{
+    border-color:var(--border);
+    color:var(--text-dim);
+    background:transparent;
+  }
+  .btn-ghost:hover{ border-color:var(--teal); color:var(--teal); }
+
+  /* Spark signature */
+  .spark-stage{
+    position:relative;
+    height:290px;
+    border:1px solid var(--border-soft);
+    border-radius:6px;
+    background:
+      radial-gradient(ellipse at 50% 45%, rgba(242,169,59,0.07), transparent 60%),
+      var(--panel);
+    overflow:hidden;
+  }
+  .spark-stage .corner{
+    position:absolute; width:9px; height:9px;
+    border:1px solid var(--teal-dim);
+  }
+  .corner.tl{ top:8px; left:8px; border-right:none; border-bottom:none; }
+  .corner.tr{ top:8px; right:8px; border-left:none; border-bottom:none; }
+  .corner.bl{ bottom:8px; left:8px; border-right:none; border-top:none; }
+  .corner.br{ bottom:8px; right:8px; border-left:none; border-top:none; }
+  .spark-stage svg{ width:100%; height:100%; }
+  .readout-tag{
+    position:absolute; bottom:10px; left:14px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:0.66rem;
+    color:var(--text-faint);
+    letter-spacing:0.1em;
+  }
+  .readout-tag b{ color:var(--teal); font-weight:500; }
+
+  .electrode{ fill:#2A3644; stroke:var(--border); stroke-width:1; }
+  .arc-path{
+    fill:none;
+    stroke:var(--amber);
+    stroke-width:2;
+    stroke-linecap:round;
+    filter: drop-shadow(0 0 6px rgba(242,169,59,0.75));
+    opacity:0;
+  }
+  .arc-path.a1{ animation: flicker 2.6s infinite; }
+  .arc-path.a2{ animation: flicker 2.6s infinite 0.9s; }
+  .arc-path.a3{ animation: flicker 2.6s infinite 1.7s; }
+  @keyframes flicker{
+    0%{ opacity:0; }
+    2%{ opacity:1; }
+    4%{ opacity:0.2; }
+    6%{ opacity:0.9; }
+    9%{ opacity:0; }
+    100%{ opacity:0; }
+  }
+
+  /* ---------- SECTION HEADERS ---------- */
+  .section-wrap{ max-width:1180px; margin:0 auto; padding:10px 28px 90px; position:relative; z-index:1; }
+  .section-head{
+    display:flex; align-items:baseline; justify-content:space-between;
+    margin:64px 0 26px;
+    border-bottom:1px solid var(--border-soft);
+    padding-bottom:14px;
+  }
+  .section-head h2{
+    font-family:'Rajdhani', sans-serif;
+    font-size:1.5rem;
+    font-weight:600;
+    letter-spacing:0.02em;
+    margin:0;
+    display:flex; align-items:center; gap:10px;
+  }
+  .section-head h2 .idx{ color:var(--amber); font-family:'IBM Plex Mono',monospace; font-size:0.85rem; }
+  .section-head p{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:0.7rem;
+    color:var(--text-faint);
+    letter-spacing:0.05em;
+    margin:0;
+  }
+
+  /* ---------- ROTARY SELECTOR (module tabs) ---------- */
+  .selector{
+    display:flex;
+    gap:2px;
+    background:var(--panel-alt);
+    border:1px solid var(--border);
+    border-radius:6px;
+    padding:5px;
+    margin-bottom:28px;
+    flex-wrap:wrap;
+  }
+  .selector button{
+    flex:1 1 180px;
+    background:transparent;
+    border:1px solid transparent;
+    color:var(--text-dim);
+    font-family:'IBM Plex Mono', monospace;
+    font-size:0.72rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    padding:13px 14px;
+    border-radius:4px;
+    cursor:pointer;
+    display:flex; align-items:center; gap:9px;
+    transition:all .15s;
+  }
+  .selector button .dot{
+    width:7px; height:7px; border-radius:50%;
+    background:var(--text-faint);
+    box-shadow:none;
+    transition:all .15s;
+    flex-shrink:0;
+  }
+  .selector button:hover{ color:var(--text); }
+  .selector button.active{
+    background:var(--panel);
+    border-color:var(--border);
+    color:var(--amber);
+  }
+  .selector button.active .dot{
+    background:var(--amber);
+    box-shadow:0 0 8px rgba(242,169,59,0.9);
+  }
+
+  .module{ display:none; }
+  .module.active{ display:block; animation: fadein .25s ease; }
+  @keyframes fadein{ from{ opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);} }
+
+  /* ---------- PANEL LAYOUT ---------- */
+  .panel-grid{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap:1px;
+    background:var(--border-soft);
+    border:1px solid var(--border-soft);
+    border-radius:6px;
+    overflow:hidden;
+  }
+  .panel-grid.triple {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+  @media (max-width: 1024px) {
+    .panel-grid.triple { grid-template-columns: 1fr; }
+  }
+  .panel{
+    background:var(--panel);
+    padding:26px 26px 28px;
+  }
+  .panel-title{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:0.68rem;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--text-faint);
+    margin:0 0 20px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .panel-title::before{ content:"›"; color:var(--teal); }
+
+  .field{ margin-bottom:16px; }
+  .field label{
+    display:block;
+    font-size:0.78rem;
+    color:var(--text-dim);
+    margin-bottom:6px;
+  }
+  .field label .unit{ color:var(--text-faint); font-family:'IBM Plex Mono',monospace; font-size:0.7rem; }
+  .field-row{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  input[type=number], select{
+    width:100%;
+    background:var(--panel-alt);
+    border:1px solid var(--border);
+    color:var(--text);
+    font-family:'IBM Plex Mono', monospace;
+    font-size:0.9rem;
+    padding:10px 12px;
+    border-radius:4px;
+    transition:border-color .15s;
+  }
+  input[type=number]:focus, select:focus{
+    outline:none;
+    border-color:var(--teal);
+  }
+  input[type=number]::-webkit-inner-spin-button{ opacity:0.5; }
+  select{ cursor:pointer; }
+
+  .seg{
+    display:flex; border:1px solid var(--border); border-radius:4px; overflow:hidden;
+  }
+  .seg button{
+    flex:1; background:var(--panel-alt); border:none; color:var(--text-dim);
+    font-family:'IBM Plex Mono',monospace; font-size:0.72rem; padding:9px 6px; cursor:pointer;
+    letter-spacing:0.04em; text-transform:uppercase;
+    border-right:1px solid var(--border);
+  }
+  .seg button:last-child{ border-right:none; }
+  .seg button.active{ background:var(--teal-dim); color:var(--teal); }
+
+  /* ---------- READOUT ---------- */
+  .readout-panel{
+    background:
+      linear-gradient(180deg, rgba(63,208,201,0.035), transparent 140px),
+      var(--panel);
+  }
+  .readout-block{
+    border:1px solid var(--border);
+    border-radius:5px;
+    padding:16px 18px;
+    margin-bottom:12px;
+    background:var(--panel-alt);
+    display:flex; align-items:center; justify-content:space-between;
+    gap:12px;
+  }
+  .readout-block .rb-label{
+    font-size:0.76rem;
+    color:var(--text-dim);
+    line-height:1.4;
+  }
+  .readout-block .rb-label small{
+    display:block; color:var(--text-faint); font-family:'IBM Plex Mono',monospace; font-size:0.64rem; margin-top:3px;
+  }
+  .readout-block .rb-value{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:1.5rem;
+    font-weight:500;
+    color:var(--teal);
+    text-shadow:0 0 14px rgba(63,208,201,0.35);
+    white-space:nowrap;
+  }
+  .readout-block .rb-value.warn{ color:var(--red); text-shadow:0 0 14px rgba(232,92,74,0.35); }
+  .readout-block .rb-value .rb-unit{ font-size:0.85rem; color:var(--text-faint); margin-left:5px; }
+  .readout-block.primary{ border-color:var(--amber-dim); }
+  .readout-block.primary .rb-value{ color:var(--amber); text-shadow:0 0 14px rgba(242,169,59,0.35); }
+
+  .note{
+    font-size:0.76rem;
+    color:var(--text-faint);
+    line-height:1.6;
+    border-left:2px solid var(--border);
+    padding:8px 0 8px 12px;
+    margin-top:16px;
+  }
+  .note b{ color:var(--text-dim); }
+
+  /* cable tray rows */
+  .tray-rows{ margin-bottom:14px; }
+  .tray-row{
+    display:grid; grid-template-columns: 1fr 1fr 32px;
+    gap:10px; margin-bottom:10px; align-items:center;
+  }
+  .tray-row .rm{
+    background:transparent; border:1px solid var(--border); color:var(--text-faint);
+    width:32px; height:38px; border-radius:4px; cursor:pointer; font-size:1rem;
+  }
+  .tray-row .rm:hover{ color:var(--red); border-color:var(--red); }
+  .add-row{
+    width:100%; background:transparent; border:1px dashed var(--border);
+    color:var(--text-dim); font-family:'IBM Plex Mono',monospace; font-size:0.72rem;
+    padding:10px; border-radius:4px; cursor:pointer; letter-spacing:0.05em; text-transform:uppercase;
+  }
+  .add-row:hover{ border-color:var(--teal); color:var(--teal); }
+
+  .fill-bar-wrap{
+    height:8px; background:var(--panel-alt); border:1px solid var(--border); border-radius:4px; overflow:hidden; margin-top:8px;
+  }
+  .fill-bar{ height:100%; background:var(--teal); transition:width .25s; }
+  .fill-bar.warn{ background:var(--red); }
+
+  /* Canvas 3D dynamic mesh */
+  .preview-container {
+    position: relative;
+    width: 100%;
+    height: 220px;
+    background: #0d1218;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .preview-container canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  /* ---------- FOOTER ---------- */
+  footer{
+    border-top:1px solid var(--border-soft);
+    padding:34px 28px 40px;
+    position:relative; z-index:1;
+  }
+  .footer-inner{
+    max-width:1180px; margin:0 auto;
+    display:flex; justify-content:space-between; align-items:flex-start; gap:20px; flex-wrap:wrap;
+  }
+  .footer-inner .fnote{
+    font-size:0.76rem; color:var(--text-faint); max-width:56ch; line-height:1.6;
+  }
+  .footer-inner .fbrand{
+    font-family:'IBM Plex Mono', monospace; font-size:0.7rem; color:var(--text-faint); letter-spacing:0.08em;
+  }
+  .footer-inner .fbrand span{ color:var(--amber); }
+
+  @media (max-width: 860px){
+    .hero-inner{ grid-template-columns:1fr; }
+    .panel-grid{ grid-template-columns:1fr; }
+    nav.topnav{ display:none; }
+    .field-row{ grid-template-columns:1fr; }
+  }
 </style>
 </head>
 <body>
-<canvas id="bgCanvas"></canvas>
-<div id="toastContainer"></div>
 
-<div id="aliasModal" class="modal-overlay">
-  <div class="modal-box">
-    <div class="modal-title"><i class="fas fa-trophy"></i> NUEVO RECORD</div>
-    <p class="modal-sub" id="aliasScoreText">Puntuacion: 0</p>
-    <input type="text" id="aliasInput" maxlength="12" placeholder="Escribe tu alias..." onkeydown="if(event.key==='Enter')submitAlias()">
-    <div class="modal-actions">
-      <button class="btn btn-primary" onclick="submitAlias()">GUARDAR</button>
-      <button class="btn btn-ghost" onclick="closeAliasModal()">OMITIR</button>
+<div class="grid-overlay"></div>
+
+<header class="topbar">
+  <div class="brand">
+    <svg class="brand-mark" viewBox="0 0 24 24" fill="none">
+      <path d="M13 2 L4 14 H11 L9.5 22 L20 9 H13 L13 2 Z" fill="#F2A93B"/>
+    </svg>
+    <div class="brand-name">EL <span>CHISPA</span></div>
+    <div class="brand-sub">Cálculos MT · AT</div>
+  </div>
+  <nav class="topnav">
+    <a href="#mt-at">MT/AT</a>
+    <a href="#luminico">Lumínico</a>
+    <a href="#bandejas">Bandejas</a>
+    <a href="#bobinados">Bobinados</a>
+    <a href="#factor-potencia">Factor de Potencia</a>
+  </nav>
+</header>
+
+<section class="hero">
+  <div class="hero-inner">
+    <div>
+      <div class="eyebrow">Ingeniería eléctrica de installations</div>
+      <h1 class="hero-title">Del cálculo a la <em>chispa</em>,<br>sin margen de error.</h1>
+      <p class="hero-desc">Módulos avanzados de cálculo para media y alta tensión: optimización de conductores, análisis lúminico, dimensionado y corte constructivo de bandejas portacables, diseño integral de bobinados y corrección avanzada del factor de potencia.</p>
+      <div class="hero-cta">
+        <a href="#mt-at" class="btn btn-primary">Ir a los cálculos ↓</a>
+        <a href="#bobinados" class="btn btn-ghost">Ver bobinados</a>
+      </div>
+    </div>
+    <div class="spark-stage">
+      <div class="corner tl"></div><div class="corner tr"></div>
+      <div class="corner bl"></div><div class="corner br"></div>
+      <svg viewBox="0 0 400 290" preserveAspectRatio="xMidYMid meet">
+        <circle class="electrode" cx="70" cy="145" r="10"/>
+        <circle class="electrode" cx="330" cy="145" r="10"/>
+        <line x1="70" y1="145" x2="330" y2="145" stroke="var(--border)" stroke-width="1" stroke-dasharray="2 6"/>
+        <path class="arc-path a1" d="M78 145 C 130 110, 160 175, 200 140 S 270 100, 322 145"/>
+        <path class="arc-path a2" d="M78 145 C 120 180, 175 105, 210 150 S 280 190, 322 145"/>
+        <path class="arc-path a3" d="M78 145 C 140 130, 150 160, 200 145 S 260 120, 322 145"/>
+      </svg>
+      <div class="readout-tag">ARCO&nbsp;DE&nbsp;PRUEBA — <b>24.6&nbsp;kV</b> · f=50Hz</div>
     </div>
   </div>
+</section>
+
+<div class="section-wrap">
+
+  <div id="mt-at" class="section-head">
+    <h2><span class="idx">01</span> Media y alta tensión</h2>
+    <p>Corriente · caída de tensión · cortocircuito</p>
+  </div>
+
+  <div class="selector" data-group="mt">
+    <button class="active" data-target="mt-corriente"><span class="dot"></span>Corriente nominal</button>
+    <button data-target="mt-caida"><span class="dot"></span>Caída de tensión</button>
+    <button data-target="mt-icc"><span class="dot"></span>Cortocircuito</button>
+  </div>
+
+  <div id="mt-corriente" class="module active">
+    <div class="panel-grid">
+      <div class="panel">
+        <p class="panel-title">Datos de la carga</p>
+        <div class="field">
+          <label>Sistema</label>
+          <div class="seg" id="ic-sistema">
+            <button class="active" data-val="3">Trifásico</button>
+            <button data-val="1">Monofásico</button>
+          </div>
+        </div>
+        <div class="field">
+          <label>Potencia aparente <span class="unit">kVA</span></label>
+          <input type="number" id="ic-potencia" value="500" step="0.1">
+        </div>
+        <div class="field">
+          <label>Tensión de línea <span class="unit">V</span></label>
+          <input type="number" id="ic-tension" value="20000" step="1">
+        </div>
+        <div class="field">
+          <label>Factor de potencia (cos φ)</label>
+          <input type="number" id="ic-cosphi" value="0.9" step="0.01" min="0.1" max="1">
+        </div>
+      </div>
+      <div class="panel readout-panel">
+        <p class="panel-title">Resultado</p>
+        <div class="readout-block primary">
+          <div class="rb-label">Corriente nominal<small>I = S / (√3 · U) · sistema trifásico</small></div>
+          <div class="rb-value" id="ic-out-i">— <span class="rb-unit">A</span></div>
+        </div>
+        <div class="readout-block">
+          <div class="rb-label">Potencia activa<small>P = S · cos φ</small></div>
+          <div class="rb-value" id="ic-out-p">— <span class="rb-unit">kW</span></div>
+        </div>
+        <div class="note"><b>Nota:</b> para sistemas monofásicos se usa I = S / U. Verifica siempre contra la corriente admisible del conductor según su norma de referencia (p. ej. UNE-HD 60364-5-52 o IEC 60502).</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="mt-caida" class="module">
+    <div class="panel-grid">
+      <div class="panel">
+        <p class="panel-title">Línea y conductor</p>
+        <div class="field-row">
+          <div class="field">
+            <label>Corriente <span class="unit">A</span></label>
+            <input type="number" id="cd-i" value="180" step="0.1">
+          </div>
+          <div class="field">
+            <label>Longitud <span class="unit">km</span></label>
+            <input type="number" id="cd-l" value="3.2" step="0.01">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Resistencia R <span class="unit">Ω/km</span></label>
+            <input type="number" id="cd-r" value="0.253" step="0.001">
+          </div>
+          <div class="field">
+            <label>Reactancia X <span class="unit">Ω/km</span></label>
+            <input type="number" id="cd-x" value="0.108" step="0.001">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Tensión nominal <span class="unit">V</span></label>
+            <input type="number" id="cd-u" value="20000" step="1">
+          </div>
+          <div class="field">
+            <label>cos φ</label>
+            <input type="number" id="cd-cosphi" value="0.9" step="0.01" min="0.1" max="1">
+          </div>
+        </div>
+      </div>
+      <div class="panel readout-panel">
+        <p class="panel-title">Resultado</p>
+        <div class="readout-block primary">
+          <div class="rb-label">Caída de tensión<small>ΔU = √3 · I · L · (R·cosφ + X·senφ)</small></div>
+          <div class="rb-value" id="cd-out-v">— <span class="rb-unit">V</span></div>
+        </div>
+        <div class="readout-block">
+          <div class="rb-label">Caída relativa<small>ΔU respecto a la tensión nominal</small></div>
+          <div class="rb-value" id="cd-out-pct">— <span class="rb-unit">%</span></div>
+        </div>
+        <div class="note"><b>Referencia:</b> en distribución en MT se admite habitualmente hasta un 5% de caída total. Valores por encima requieren revisar sección de conductor o longitud de línea.</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="mt-icc" class="module">
+    <div class="panel-grid">
+      <div class="panel">
+        <p class="panel-title">Datos del transformador / punto de falta</p>
+        <div class="field">
+          <label>Potencia nominal Sn <span class="unit">kVA</span></label>
+          <input type="number" id="icc-sn" value="1000" step="1">
+        </div>
+        <div class="field">
+          <label>Tensión nominal Un <span class="unit">kV</span></label>
+          <input type="number" id="icc-un" value="20" step="0.1">
+        </div>
+        <div class="field">
+          <label>Tensión de cortocircuito Zcc <span class="unit">%</span></label>
+          <input type="number" id="icc-zcc" value="6" step="0.1">
+        </div>
+      </div>
+      <div class="panel readout-panel">
+        <p class="panel-title">Resultado</p>
+        <div class="readout-block primary">
+          <div class="rb-label">Corriente de cortocircuito<small>Icc = Sn / (√3 · Un · Zcc%)</small></div>
+          <div class="rb-value" id="icc-out">— <span class="rb-unit">kA</span></div>
+        </div>
+        <div class="readout-block">
+          <div class="rb-label">Potencia de cortocircuito<small>Scc = Sn / Zcc%</small></div>
+          <div class="rb-value" id="icc-out-s">— <span class="rb-unit">MVA</span></div>
+        </div>
+        <div class="note"><b>Nota:</b> cálculo simplificado en el punto de bornes del transformador, sin considerar impedancia de la red aguas arriba. Para estudios de protección usa el método de las componentes simétricas.</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="luminico" class="section-head">
+    <h2><span class="idx">02</span> Cálculo lumínico</h2>
+    <p>Método de los lúmenes</p>
+  </div>
+
+  <div class="panel-grid">
+    <div class="panel">
+      <p class="panel-title">Local a iluminar</p>
+      <div class="field-row">
+        <div class="field">
+          <label>Largo (a) <span class="unit">m</span></label>
+          <input type="number" id="lu-a" value="10" step="0.1">
+        </div>
+        <div class="field">
+          <label>Ancho (b) <span class="unit">m</span></label>
+          <input type="number" id="lu-b" value="6" step="0.1">
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Altura útil (h) <span class="unit">m</span></label>
+          <input type="number" id="lu-h" value="2.8" step="0.1">
+        </div>
+        <div class="field">
+          <label>Iluminancia requerida Em <span class="unit">lux</span></label>
+          <input type="number" id="lu-em" value="500" step="1">
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Factor de utilización η</label>
+          <input type="number" id="lu-eta" value="0.55" step="0.01" min="0.1" max="1">
+        </div>
+        <div class="field">
+          <label>Factor de mantenimiento fm</label>
+          <input type="number" id="lu-fm" value="0.8" step="0.01" min="0.1" max="1">
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Flujo por lámpara <span class="unit">lm</span></label>
+          <input type="number" id="lu-flujo" value="4000" step="10">
+        </div>
+        <div class="field">
+          <label>Lámparas por luminaria</label>
+          <input type="number" id="lu-nlamp" value="2" step="1" min="1">
+        </div>
+      </div>
+    </div>
+    <div class="panel readout-panel">
+      <p class="panel-title">Resultado</p>
+      <div class="readout-block">
+        <div class="rb-label">Índice del local (K)<small>K = a·b / (h·(a+b))</small></div>
+        <div class="rb-value" id="lu-out-k">— </div>
+      </div>
+      <div class="readout-block">
+        <div class="rb-label">Flujo luminoso total requerido<small>Φt = Em · A / (η · fm)</small></div>
+        <div class="rb-value" id="lu-out-flujo">— <span class="rb-unit">lm</span></div>
+      </div>
+      <div class="readout-block primary">
+        <div class="rb-label">Nº de luminarias<small>N = Φt / (Φlámpara · nº lámparas)</small></div>
+        <div class="rb-value" id="lu-out-n">— </div>
+      </div>
+      <div class="readout-block">
+        <div class="rb-label">Iluminancia real obtenida<small>con el nº de luminarias redondeado</small></div>
+        <div class="rb-value" id="lu-out-ereal">— <span class="rb-unit">lux</span></div>
+      </div>
+      <div class="note"><b>Nota:</b> el factor de utilización η depende del índice del local K y de los coeficientes de reflexión de techo, paredes y suelo — consúltalo en la tabla del fabricante de la luminaria elegida.</div>
+    </div>
+  </div>
+
+  <div id="bandejas" class="section-head">
+    <h2><span class="idx">03</span> Bandejas portacables</h2>
+    <p>Dimensionado y trazado constructivo</p>
+  </div>
+
+  <div class="selector" data-group="bandejas-sel">
+    <button class="active" data-target="tray-dimensionamiento"><span class="dot"></span>Dimensionado de Sección</button>
+    <button data-target="tray-corte"><span class="dot"></span>Cálculo de Corte y Ángulo</button>
+  </div>
+
+  <div id="tray-dimensionamiento" class="module active">
+    <div class="panel-grid">
+      <div class="panel">
+        <p class="panel-title">Cables a instalar</p>
+        <div class="tray-rows" id="tray-rows"></div>
+        <button class="add-row" id="tray-add" type="button">+ Añadir grupo de cables</button>
+        <div class="field" style="margin-top:20px;">
+          <label>Altura útil de la bandeja <span class="unit">mm</span></label>
+          <select id="tray-height">
+            <option value="60">60 mm</option>
+            <option value="75">75 mm</option>
+            <option value="100" selected>100 mm</option>
+            <option value="150">150 mm</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Factor de llenado máximo admitido <span class="unit">%</span></label>
+          <input type="number" id="tray-fillmax" value="40" step="1" min="5" max="90">
+        </div>
+      </div>
+      <div class="panel readout-panel">
+        <p class="panel-title">Resultado</p>
+        <div class="readout-block">
+          <div class="rb-label">Sección total ocupada por cables<small>Σ (π/4 · d²) · cantidad</small></div>
+          <div class="rb-value" id="tray-out-area">— <span class="rb-unit">mm²</span></div>
+        </div>
+        <div class="readout-block">
+          <div class="rb-label">Ancho mínimo teórico<small>W = Área·100 / (fill% · altura)</small></div>
+          <div class="rb-value" id="tray-out-width">— <span class="rb-unit">mm</span></div>
+        </div>
+        <div class="readout-block primary">
+          <div class="rb-label">Ancho de bandeja normalizado<small>según serie comercial</small></div>
+          <div class="rb-value" id="tray-out-std">— <span class="rb-unit">mm</span></div>
+        </div>
+        <div class="field" style="margin-top:4px;">
+          <label>Grado de llenado con el ancho normalizado</label>
+          <div class="fill-bar-wrap"><div class="fill-bar" id="tray-fillbar" style="width:0%"></div></div>
+          <div style="text-align:right; font-family:'IBM Plex Mono',monospace; font-size:0.75rem; color:var(--text-dim); margin-top:6px;" id="tray-fillpct">0%</div>
+        </div>
+        <div class="note"><b>Nota:</b> serie comercial estándar considerada: 100, 150, 200, 300, 400, 500, 600, 800, 1000 mm. Ajusta según catálogo del fabricante y separa circuits de potencia y control cuando la normativa lo exija.</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="tray-corte" class="module">
+    <div class="panel-grid triple">
+      <div class="panel">
+        <p class="panel-title">Geometría del ala</p>
+        <div class="field">
+          <label>Canto / Altura de ala (H) <span class="unit">mm</span></label>
+          <input type="number" id="tc-h" value="100" step="1">
+        </div>
+        <div class="field">
+          <label>Ángulo deseado (α) <span class="unit">°</span></label>
+          <input type="number" id="tc-alpha" value="45" step="0.5" min="5" max="175">
+        </div>
+        <div class="field">
+          <label>Dirección del giro</label>
+          <div class="seg" id="tc-direccion">
+            <button class="active" data-val="dentro">Hacia Dentro</button>
+            <button data-val="fuera">Hacia Fuera</button>
+          </div>
+        </div>
+        <div class="field">
+          <label>Número de cortes en V</label>
+          <select id="tc-cortes">
+            <option value="1">1 corte (Giro brusco)</option>
+            <option value="2" selected>2 cortes (Giro suavizado)</option>
+            <option value="3">3 cortes (Curva segmentada)</option>
+          </select>
+        </div>
+      </div>
+      <div class="panel readout-panel">
+        <p class="panel-title">Magnitudes de la plantilla</p>
+        <div class="readout-block primary">
+          <div class="rb-label">Apertura total de V (L)<small>L total acumulado de las muescas</small></div>
+          <div class="rb-value" id="tc-out-l">— <span class="rb-unit">mm</span></div>
+        </div>
+        <div class="readout-block">
+          <div class="rb-label">Ancho por muesca (L<sub>i</sub>)<small>Tamaño de apertura de cada V individual</small></div>
+          <div class="rb-value" id="tc-out-li">— <span class="rb-unit">mm</span></div>
+        </div>
+        <div class="readout-block">
+          <div class="rb-label">Ángulo de corte por V<small>Ángulo de la muesca a troquelar</small></div>
+          <div class="rb-value" id="tc-out-alphai">— <span class="rb-unit">°</span></div>
+        </div>
+        <div class="note"><b>Guía constructiva:</b> Para giros <b>Hacia Dentro</b> se corta el ala interior. Para giros <b>Hacia Fuera</b>, se abre el ala exterior. Deja siempre intacta la base/suelo de la bandeja.</div>
+      </div>
+      <div class="panel" style="background:#0d1218; padding:20px; display:flex; flex-direction:column; justify-content:space-between;">
+        <p class="panel-title">Esquema dinámico 3D</p>
+        <div class="preview-container">
+          <canvas id="tray-canvas"></canvas>
+        </div>
+        <div class="note" style="margin-top:10px; font-size:0.7rem;">Representación del tramo modificado tras aplicar los cortes y plegar el ala.</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="bobinados" class="section-head">
+    <h2><span class="idx">04</span> Máquinas y Bobinados</h2>
+    <p>Dimensionado de devanados y cálculo magnético de transformadores</p>
+  </div>
+
+  <div class="selector" data-group="bobinados-sel">
+    <button class="active" data-target="rot-rotativos"><span class="dot"></span>Motores y Alternadores</button>
+    <button data-target="bb-transformadores"><span class="dot"></span>Cálculo de Transformadores</button>
+  </div>
+
+  <div id="rot-rotativos" class="module active">
+    <div class="panel-grid">
+      <div class="panel">
+        <p class="panel-title">Parámetros del Estátor / Rotor</p>
+        <div class="field">
+          <label>Tipo de Máquina</label>
+          <div class="seg" id="rot-tipo">
+            <button class="active" data-val="asincrono">Asíncrono</button>
+            <button data-val="sincrono">Síncrono/Alt.</button>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Nº Ranuras (K)</label>
+            <input type="number" id="rot-k" value="36" step="1">
+          </div>
+          <div class="field">
+            <label>Nº Polos (2p)</label>
+            <input type="number" id="rot-polos" value="4" step="2">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Frecuencia (f) <span class="unit">Hz</span></label>
+            <input type="number" id="rot-f" value="50" step="1">
+          </div>
+          <div class="field" id="rot-field-s">
+            <label>Deslizamiento (s) <span class="unit">%</span></label>
+            <input type="number" id="rot-s" value="4" step="0.1" min="0" max="100">
+          </div>
+        </div>
+      </div>
+      <div class="panel readout-panel">
+        <p class="panel-title">Magnitudes del Devanado</p>
+        <div class="readout-block">
+          <div class="rb-label">Velocidad Sincronismo (n<sub>s</sub>)<small>n<sub>s</sub> = (60 · f) / p</small></div>
+          <div class="rb-value" id="rot-out-ns">— <span class="rb-unit">rpm</span></div>
+        </div>
+        <div class="readout-block primary">
+          <div class="rb-label">Velocidad Rotórica Real (n)<small>n = n<sub>s</sub> · (1 - s/100)</small></div>
+          <div class="rb-value" id="rot-out-n">— <span class="rb-unit">rpm</span></div>
+        </div>
+        <div class="readout-block">
+          <div class="rb-label">Paso de Ranura Diametral (Y<sub>g</sub>)<small>Y<sub>g</sub> = K / 2p (Ranuras por polo)</small></div>
+          <div class="rb-value" id="rot-out-yg">— <span class="rb-unit">ranuras</span></div>
+        </div>
+        <div class="readout-block">
+          <div class="rb-label">Ángulo Eléctrico (γ)<small>γ = (p · 360°) / K</small></div>
+          <div class="rb-value" id="rot-out-gamma">— <span class="rb-unit">°elec</span></div>
+        </div>
+        <div class="readout-block">
+          <div class="rb-label">Ranuras por Polo y Fase (q)<small>q = K / (2p · m) para m=3</small></div>
+          <div class="rb-value" id="rot-out-q">— </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="bb-transformadores" class="module">
+    <div class="panel-grid">
+      <div class="panel">
+        <p class="panel-title">Geometría del Núcleo y Tensiones</p>
+        <div class="field">
+          <label>Tipo de Red</label>
+          <div class="seg" id="bb-sistema">
+            <button class="active" data-val="3">Trifásico</button>
+            <button data-val="1">Monofásico</button>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Potencia (S<sub>n</sub>) <span class="unit">kVA</span></label>
+            <input type="number" id="bb-sn" value="100" step="1">
+          </div>
+          <div class="field">
+            <label>Frecuencia (f) <span class="unit">Hz</span></label>
+            <input type="number" id="bb-f" value="50" step="1">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Tensión Primario (V<sub>1</sub>) <span class="unit">V</span></label>
+            <input type="number" id="bb-v1" value="20000" step="10">
+          </div>
+          <div class="field">
+            <label>Tensión Secundario (V<sub>2</sub>) <span class="unit">V</span></label>
+            <input type="number" id="bb-v2" value="4000" step="10">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Inducción Máx (B<sub>max</sub>) <span class="unit">T</span></label>
+            <input type="number" id="bb-bmax" value="1.5" step="0.05">
+          </div>
+          <div class="field">
+            <label>Sección Núcleo (A<sub>e</sub>) <span class="unit">cm²</span></label>
+            <input type="number" id="bb-ae" value="120" step="1">
+          </div>
+        </div>
+      </div>
+      <div class="panel readout-panel">
+        <p class="panel-title">Resultados Magnéticos y Espiras</p>
+        <div class="readout-block">
+          <div class="rb-label">Relación Espiras/Voltio (e<sub>v</sub>)<small>e<sub>v</sub> = 1 / (4.44 · f · B<sub>max</sub> · A<sub>e</sub>)</small></div>
+          <div class="rb-value" id="bb-out-nv">— <span class="rb-unit">esp/V</span></div>
+        </div>
+        <div class="readout-block primary">
+          <div class="rb-label">Espiras Primario (N<sub>1</sub>)<small>N<sub>1</sub> = V<sub>1</sub> · e<sub>v</sub></small></div>
+          <div class="rb-value" id="bb-out-n1">— <span class="rb-unit">espiras</span></div>
+        </div>
+        <div class="readout-block primary">
+          <div class="rb-label">Espiras Secundario (N<sub>2</sub>)<small>N<sub>2</sub> = V<sub>2</sub> · e<sub>v</sub></small></div>
+          <div class="rb-value" id="bb-out-n2">— <span class="rb-unit">espiras</span></div>
+        </div>
+        <div class="readout-block">
+          <div class="rb-label">Relación de Transformación (a)<small>a = N<sub>1</sub> / N<sub>2</sub></small></div>
+          <div class="rb-value" id="bb-out-a">— </div>
+        </div>
+        <div class="field-row">
+          <div class="readout-block" style="margin-bottom:0;">
+            <div class="rb-label">I<sub>1</sub> Nom <span class="unit">A</span></div>
+            <div class="rb-value" id="bb-out-i1" style="font-size:1.15rem;">—</div>
+          </div>
+          <div class="readout-block" style="margin-bottom:0;">
+            <div class="rb-label">I<sub>2</sub> Nom <span class="unit">A</span></div>
+            <div class="rb-value" id="bb-out-i2" style="font-size:1.15rem;">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="factor-potencia" class="section-head">
+    <h2><span class="idx">05</span> Factor de Potencia</h2>
+    <p>Corrección mediante batería de condensadores</p>
+  </div>
+
+  <div class="panel-grid">
+    <div class="panel">
+      <p class="panel-title">Datos de la instalación</p>
+      <div class="field">
+        <label>Tipo de Sistema</label>
+        <div class="seg" id="fp-sistema">
+          <button class="active" data-val="3">Trifásico</button>
+          <button data-val="1">Monofásico</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>Potencia Activa (P) <span class="unit">kW</span></label>
+        <input type="number" id="fp-potencia" value="150" step="1">
+      </div>
+      <div class="field">
+        <label>Tensión de Línea (V) <span class="unit">V</span></label>
+        <input type="number" id="fp-tension" value="400" step="1">
+      </div>
+      <div class="field">
+        <label>Frecuencia (f) <span class="unit">Hz</span></label>
+        <input type="number" id="fp-frecuencia" value="50" step="1">
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>cos φ Inicial (Actual)</label>
+          <input type="number" id="fp-cos-ini" value="0.75" step="0.01" min="0.2" max="0.99">
+        </div>
+        <div class="field">
+          <label>cos φ Objetivo (Deseado)</label>
+          <input type="number" id="fp-cos-obj" value="0.95" step="0.01" min="0.3" max="1">
+        </div>
+      </div>
+    </div>
+    <div class="panel readout-panel">
+      <p class="panel-title">Dimensionamiento de Condensadores</p>
+      <div class="readout-block primary">
+        <div class="rb-label">Potencia Reactiva Necesaria (Q<sub>c</sub>)<small>Q<sub>c</sub> = P · (tan φ<sub>ini</sub> - tan φ<sub>obj</sub>)</small></div>
+        <div class="rb-value" id="fp-out-qc">— <span class="rb-unit">kvar</span></div>
+      </div>
+      <div class="readout-block">
+        <div class="rb-label">Capacidad por Fase (Estrella / Monofásico)<small>C = Q<sub>c</sub> / (2 · π · f · V<sup>2</sup>)</small></div>
+        <div class="rb-value" id="fp-out-c-estrella">— <span class="rb-unit">µF</span></div>
+      </div>
+      <div class="readout-block">
+        <div class="rb-label">Capacidad por Fase (Conexión Triángulo)<small>C = Q<sub>c</sub> / (6 · π · f · V<sup>2</sup>)</small></div>
+        <div class="rb-value" id="fp-out-c-triangulo">— <span class="rb-unit">µF</span></div>
+      </div>
+      <div class="readout-block">
+        <div class="rb-label">Corriente de la Batería (I<sub>c</sub>)<small>Reducción de carga reactiva en líneas generales</small></div>
+        <div class="rb-value" id="fp-out-ic">— <span class="rb-unit">A</span></div>
+      </div>
+      <div class="note"><b>Nota:</b> La conexión en triángulo es la más habitual comercialmente en sistemas trifásicos de baja tensión debido a que requiere valores de capacidad tres veces menores para la misma potencia reactiva.</div>
+    </div>
+  </div>
+
 </div>
 
-<section id="startScreen" class="screen active">
-  <div class="title">RECREATIVAS FOREVER</div>
-  <div class="subtitle">PREMIUM EDITION</div>
-  <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;max-width:500px">
-    <button class="btn btn-primary shimmer" onclick="startGame()"><i class="fas fa-crown" style="margin-right:8px"></i>PACMAN</button>
-    <button class="btn" onclick="startInvaders()"><i class="fas fa-rocket" style="margin-right:8px"></i>SPACE INVADERS</button>
-    <button class="btn" onclick="startGalaga()"><i class="fas fa-meteor" style="margin-right:8px"></i>GALAGA</button>
-    <button class="btn" onclick="startArkanoid()"><i class="fas fa-th" style="margin-right:8px"></i>ARKANOID</button>
-    <button class="btn btn-ghost" style="margin-top:20px; width:100%" onclick="showLeaderboard()"><i class="fas fa-trophy" style="margin-right:8px"></i>RECORDS</button>
+<footer>
+  <div class="footer-inner">
+    <div class="fnote">El Chispa es una suite de cálculo técnico orientada a ingeniería y diseño constructivo en instalaciones eléctricas. Los resultados deben ser validados de acuerdo con la reglamentación electrotécnica vigente de cada país.</div>
+    <div class="fbrand">EL <span>CHISPA</span> · 2026</div>
   </div>
-  <p style="color:var(--muted);font-size:.75rem;margin-top:24px;letter-spacing:1px">Experiencia exclusiva de arcade clásico</p>
-  <div style="margin-top:40px;display:flex;gap:32px">
-  </div>
-</section>
-
-<section id="gameScreen" class="screen">
-  <button class="back-link" onclick="exitToMenu()"><i class="fas fa-arrow-left"></i> Volver</button>
-  <div class="hud">
-    <div class="hud-item"><div><div class="hud-label">PUNTOS</div><div class="hud-value" id="hudScore">0</div></div></div>
-    <div class="hud-item"><div><div class="hud-label">NIVEL</div><div class="hud-value" id="hudLevel">1</div></div></div>
-    <div class="hud-item"><div><div class="hud-label">VIDAS</div><div class="lives-display" id="hudLives"></div></div></div>
-    <div class="hud-item"><div><div class="hud-label">MONEDAS</div><div class="hud-value" id="hudCoins"><i class="fas fa-coins" style="font-size:.7rem"></i> 0</div></div></div>
-  </div>
-  <canvas id="gameCanvas"></canvas>
-  <div class="touch-controls" style="justify-content:center">
-    <div class="tc-dpad">
-      <button class="tc-btn tc-up" data-dir="up"><i class="fas fa-caret-up"></i></button>
-      <button class="tc-btn tc-left" data-dir="left"><i class="fas fa-caret-left"></i></button>
-      <button class="tc-btn tc-right" data-dir="right"><i class="fas fa-caret-right"></i></button>
-      <button class="tc-btn tc-down" data-dir="down"><i class="fas fa-caret-down"></i></button>
-    </div>
-  </div>
-  <div class="controls-hint"><i class="fas fa-keyboard"></i> FLECHAS / WASD — P para pausar</div>
-</section>
-
-<section id="gameOverScreen" class="screen">
-  <div style="font-family:'Orbitron';font-size:2.5rem;font-weight:900;color:var(--danger);letter-spacing:4px;margin-bottom:8px">GAME OVER</div>
-  <p style="color:var(--muted);margin-bottom:24px">Los fantasmas te han atrapado</p>
-  <div style="display:flex;gap:32px;margin-bottom:32px">
-    <div style="text-align:center"><div style="font-size:.65rem;color:var(--muted);letter-spacing:1px;font-family:'Orbitron'">PUNTOS</div><div style="font-family:'Orbitron';font-size:1.8rem;font-weight:900;color:var(--gold-light)" id="goScore">0</div></div>
-    <div style="text-align:center"><div style="font-size:.65rem;color:var(--muted);letter-spacing:1px;font-family:'Orbitron'">MONEDAS</div><div style="font-family:'Orbitron';font-size:1.8rem;font-weight:900;color:var(--gold-light)" id="goCoins">0</div></div>
-    <div style="text-align:center"><div style="font-size:.65rem;color:var(--muted);letter-spacing:1px;font-family:'Orbitron'">NIVEL</div><div style="font-family:'Orbitron';font-size:1.8rem;font-weight:900;color:var(--gold-light)" id="goLevel">1</div></div>
-  </div>
-  <div style="display:flex;gap:12px">
-    <button class="btn btn-primary" onclick="startGame()">REINTENTAR</button>
-    <button class="btn btn-ghost" onclick="showScreen('startScreen')">SALIR</button>
-  </div>
-</section>
-
-<section id="winScreen" class="screen">
-  <div style="width:80px;height:80px;border-radius:50%;background:rgba(212,168,67,.1);border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;margin-bottom:24px"><i class="fas fa-trophy" style="font-size:2rem;color:var(--gold-light)"></i></div>
-  <div style="font-family:'Orbitron';font-size:2rem;font-weight:900;color:var(--gold-light);letter-spacing:4px;margin-bottom:8px">VICTORIA</div>
-  <p style="color:var(--muted);margin-bottom:24px">Has completado todos los niveles</p>
-  <div style="display:flex;gap:32px;margin-bottom:32px">
-    <div style="text-align:center"><div style="font-size:.65rem;color:var(--muted);letter-spacing:1px;font-family:'Orbitron'">PUNTOS</div><div style="font-family:'Orbitron';font-size:1.8rem;font-weight:900;color:var(--gold-light)" id="winScore">0</div></div>
-    <div style="text-align:center"><div style="font-size:.65rem;color:var(--muted);letter-spacing:1px;font-family:'Orbitron'">MONEDAS</div><div style="font-family:'Orbitron';font-size:1.8rem;font-weight:900;color:var(--gold-light)" id="winCoins">0</div></div>
-  </div>
-  <div style="display:flex;gap:12px">
-    <button class="btn btn-primary" onclick="startGame()">JUGAR DE NUEVO</button>
-    <button class="btn btn-ghost" onclick="showScreen('startScreen')">SALIR</button>
-  </div>
-</section>
-
-<section id="invadersScreen" class="screen">
-  <button class="back-link" onclick="exitToMenu()"><i class="fas fa-arrow-left"></i> Volver</button>
-  <div class="hud" style="max-width:480px">
-    <div class="hud-item"><div><div class="hud-label">PUNTOS</div><div class="hud-value" id="invScore">0</div></div></div>
-    <div class="hud-item"><div><div class="hud-label">OLEADA</div><div class="hud-value" id="invWave">1</div></div></div>
-    <div class="hud-item"><div><div class="hud-label">VIDAS</div><div class="lives-display" id="invLives"></div></div></div>
-    <div class="hud-item"><div><div class="hud-label">RECORD</div><div class="hud-value" id="invHi">0</div></div></div>
-  </div>
-  <canvas id="invCanvas" style="border:2px solid var(--gold-dark);border-radius:4px;background:#000;margin-top:10px"></canvas>
-  <div class="touch-controls tc-shooter">
-    <div class="tc-lr">
-      <button class="tc-btn" id="invBtnLeft" style="width:56px;height:56px"><i class="fas fa-caret-left"></i></button>
-      <button class="tc-btn" id="invBtnRight" style="width:56px;height:56px"><i class="fas fa-caret-right"></i></button>
-    </div>
-    <button class="tc-fire" id="invBtnFire"><i class="fas fa-bolt"></i></button>
-  </div>
-  <div class="controls-hint"><i class="fas fa-keyboard"></i> FLECHAS / WASD mover — ESPACIO disparar — P pausar</div>
-</section>
-
-<section id="galagaScreen" class="screen">
-  <button class="back-link" onclick="exitToMenu()"><i class="fas fa-arrow-left"></i> Volver</button>
-  <div class="hud" style="max-width:480px">
-    <div class="hud-item"><div><div class="hud-label">PUNTOS</div><div class="hud-value" id="galScore">0</div></div></div>
-    <div class="hud-item"><div><div class="hud-label">OLEADA</div><div class="hud-value" id="galWave">1</div></div></div>
-    <div class="hud-item"><div><div class="hud-label">VIDAS</div><div class="lives-display" id="galLives"></div></div></div>
-    <div class="hud-item"><div><div class="hud-label">RECORD</div><div class="hud-value" id="galHi">0</div></div></div>
-  </div>
-  <canvas id="galCanvas" style="border:2px solid var(--gold-dark);border-radius:4px;background:#000;margin-top:10px"></canvas>
-  <div class="touch-controls tc-shooter">
-    <div class="tc-lr">
-      <button class="tc-btn" id="galBtnLeft" style="width:56px;height:56px"><i class="fas fa-caret-left"></i></button>
-      <button class="tc-btn" id="galBtnRight" style="width:56px;height:56px"><i class="fas fa-caret-right"></i></button>
-    </div>
-    <button class="tc-fire" id="galBtnFire"><i class="fas fa-bolt"></i></button>
-  </div>
-  <div class="controls-hint"><i class="fas fa-keyboard"></i> FLECHAS / WASD mover — ESPACIO disparar — P pausar</div>
-</section>
-
-<section id="arkanoidScreen" class="screen">
-  <button class="back-link" onclick="exitToMenu()"><i class="fas fa-arrow-left"></i> Volver</button>
-  <div class="hud" style="max-width:480px">
-    <div class="hud-item"><div><div class="hud-label">PUNTOS</div><div class="hud-value" id="arkScore">0</div></div></div>
-    <div class="hud-item"><div><div class="hud-label">NIVEL</div><div class="hud-value" id="arkLevel">1</div></div></div>
-    <div class="hud-item"><div><div class="hud-label">VIDAS</div><div class="lives-display" id="arkLives"></div></div></div>
-    <div class="hud-item"><div><div class="hud-label">RECORD</div><div class="hud-value" id="arkHi">0</div></div></div>
-  </div>
-  <canvas id="arkCanvas" style="border:2px solid var(--gold-dark);border-radius:4px;background:#000;margin-top:10px"></canvas>
-  <div class="touch-controls tc-shooter">
-    <div class="tc-lr">
-      <button class="tc-btn" id="arkBtnLeft" style="width:56px;height:56px"><i class="fas fa-caret-left"></i></button>
-      <button class="tc-btn" id="arkBtnRight" style="width:56px;height:56px"><i class="fas fa-caret-right"></i></button>
-    </div>
-    <button class="tc-fire" id="arkBtnFire"><i class="fas fa-play"></i></button>
-  </div>
-  <div class="controls-hint"><i class="fas fa-keyboard"></i> FLECHAS / WASD mover — ESPACIO lanzar — P pausar</div>
-</section>
-
-<section id="leaderboardScreen" class="screen">
-  <button class="back-link" onclick="showScreen('startScreen')"><i class="fas fa-arrow-left"></i> Volver</button>
-  <div class="title" style="font-size:2rem">RECORDS</div>
-  <div style="display:flex;gap:8px;margin:20px 0;flex-wrap:wrap;justify-content:center">
-    <button class="btn tab-btn active" data-game="pacman" onclick="switchLBTab('pacman')">PACMAN</button>
-    <button class="btn tab-btn" data-game="invaders" onclick="switchLBTab('invaders')">INVADERS</button>
-    <button class="btn tab-btn" data-game="galaga" onclick="switchLBTab('galaga')">GALAGA</button>
-    <button class="btn tab-btn" data-game="arkanoid" onclick="switchLBTab('arkanoid')">ARKANOID</button>
-  </div>
-  <div class="leaderboard-list" id="lbList"></div>
-</section>
+</footer>
 
 <script>
-let activeGameLoop = null;
-let lbCurrentTab = 'pacman';
-let lbPendingGame = null;
-let lbPendingScore = 0;
-if ('ontouchstart' in window || navigator.maxTouchPoints > 0 || navigator.msMaxTouchPoints > 0) {
-  document.documentElement.classList.add('is-touch');
-  document.body.classList.add('is-touch');
-}
-
-function showToast(msg, type='info') {
-  const t = document.createElement('div');
-  t.className = 'toast toast-' + type;
-  t.textContent = msg;
-  document.getElementById('toastContainer').appendChild(t);
-  setTimeout(() => t.remove(), 3000);
-}
-
-function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-}
-
-function exitToMenu() {
-  if (animFrame) cancelAnimationFrame(animFrame);
-  activeGameLoop = null;
-  gameState = 'menu';
-  invState.phase = 'menu';
-  gal.phase = 'menu';
-  ark.phase = 'menu';
-  showScreen('startScreen');
-}
-
-const bgC = document.getElementById('bgCanvas');
-const bgCtx = bgC.getContext('2d');
-let bgDots = [];
-function initBg() {
-  bgC.width = window.innerWidth; bgC.height = window.innerHeight;
-  bgDots = [];
-  for (let i = 0; i < 50; i++) {
-    bgDots.push({ x: Math.random()*bgC.width, y: Math.random()*bgC.height, vx: (Math.random()-.5)*.3, vy: (Math.random()-.5)*.3, r: Math.random()*2+.5, a: Math.random()*.3+.05 });
-  }
-}
-function animBg() {
-  bgCtx.clearRect(0, 0, bgC.width, bgC.height);
-  bgDots.forEach(d => {
-    d.x += d.vx; d.y += d.vy;
-    if(d.x<0)d.x=bgC.width; if(d.x>bgC.width)d.x=0;
-    if(d.y<0)d.y=bgC.height; if(d.y>bgC.height)d.y=0;
-    bgCtx.beginPath(); bgCtx.arc(d.x, d.y, d.r, 0, Math.PI*2);
-    bgCtx.fillStyle=`rgba(212,168,67,${d.a})`; bgCtx.fill();
-  });
-  requestAnimationFrame(animBg);
-}
-window.addEventListener('resize', initBg); initBg(); animBg();
-
-const CELL = 30;
-const COLS = 19, ROWS = 21;
-const CW = COLS * CELL, CH = ROWS * CELL;
-
-const MAZES = [
-  [[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],[1,2,2,2,2,2,2,2,2,1,2,2,2,2,2,2,2,2,1],[1,3,1,1,2,1,1,1,2,1,2,1,1,1,2,1,1,3,1],[1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1],[1,2,1,1,2,1,2,1,1,1,1,1,2,1,2,1,1,2,1],[1,2,2,2,2,1,2,2,2,1,2,2,2,1,2,2,2,2,1],[1,1,1,1,2,1,1,1,9,1,9,1,1,1,2,1,1,1,1],[9,9,9,1,2,1,9,9,9,9,9,9,9,1,2,1,9,9,9],[1,1,1,1,2,1,9,1,1,5,1,1,9,1,2,1,1,1,1],[9,9,9,9,2,9,9,1,7,7,7,1,9,9,2,9,9,9,9],[1,1,1,1,2,1,9,1,1,1,1,1,9,1,2,1,1,1,1],[9,9,9,1,2,1,9,9,9,9,9,9,9,1,2,1,9,9,9],[1,1,1,1,2,1,9,1,1,1,1,1,9,1,2,1,1,1,1],[1,2,2,2,2,2,2,2,2,1,2,2,2,2,2,2,2,2,1],[1,2,1,1,2,1,1,1,2,1,2,1,1,1,2,1,1,2,1],[1,3,2,1,2,2,2,2,2,2,2,2,2,2,2,1,2,3,1],[1,1,2,1,2,1,2,1,1,1,1,1,2,1,2,1,2,1,1],[1,2,2,2,2,1,2,2,2,1,2,2,2,1,2,2,2,2,1],[1,2,1,1,1,1,1,1,2,1,2,1,1,1,1,1,1,2,1],[1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1],[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]],
-  [[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],[1,2,2,2,2,1,2,2,2,2,2,2,2,1,2,2,2,2,1],[1,3,1,1,2,1,2,1,1,1,1,1,2,1,2,1,1,3,1],[1,2,2,2,2,2,2,2,2,1,2,2,2,2,2,2,2,2,1],[1,1,1,2,1,1,2,1,2,1,2,1,2,1,1,2,1,1,1],[1,2,2,2,2,2,2,1,2,2,2,1,2,2,2,2,2,2,1],[1,2,1,1,1,1,2,1,1,1,1,1,2,1,1,1,1,2,1],[1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1],[1,1,1,1,2,1,9,1,1,5,1,1,9,1,2,1,1,1,1],[9,9,9,9,2,1,9,1,7,7,7,1,9,1,2,9,9,9,9],[1,1,1,1,2,1,9,1,1,1,1,1,9,1,2,1,1,1,1],[9,9,9,1,2,1,9,9,9,9,9,9,9,1,2,1,9,9,9],[1,1,1,1,2,1,9,1,1,1,1,1,9,1,2,1,1,1,1],[1,2,2,2,2,2,2,2,2,1,2,2,2,2,2,2,2,2,1],[1,2,1,1,2,1,1,1,2,1,2,1,1,1,2,1,1,2,1],[1,3,2,1,2,2,2,2,2,2,2,2,2,2,2,1,2,3,1],[1,1,2,1,2,1,2,1,1,1,1,1,2,1,2,1,2,1,1],[1,2,2,2,2,1,2,2,2,1,2,2,2,1,2,2,2,2,1],[1,2,1,1,1,1,1,1,2,1,2,1,1,1,1,1,1,2,1],[1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1],[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]],
-  [[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],[1,2,2,2,2,2,2,2,2,1,2,2,2,2,2,2,2,2,1],[1,3,2,1,1,2,1,1,2,1,2,1,1,2,1,1,2,3,1],[1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1],[1,2,1,2,1,1,2,1,1,1,1,1,2,1,1,2,1,2,1],[1,2,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,2,1],[1,2,1,1,1,2,1,1,9,1,9,1,1,2,1,1,1,2,1],[1,2,2,2,2,2,1,9,9,9,9,9,1,2,2,2,2,2,1],[1,1,1,1,1,2,1,9,1,5,1,9,1,2,1,1,1,1,1],[9,9,9,9,9,2,9,9,1,7,7,9,9,2,9,9,9,9,9],[1,1,1,1,1,2,1,9,1,1,1,9,1,2,1,1,1,1,1],[1,2,2,2,2,2,1,9,9,9,9,9,1,2,2,2,2,2,1],[1,2,1,1,1,2,1,1,1,1,1,1,1,2,1,1,1,2,1],[1,2,2,2,2,2,2,2,2,1,2,2,2,2,2,2,2,2,1],[1,2,1,1,2,1,1,1,2,1,2,1,1,1,2,1,1,2,1],[1,3,2,1,2,2,2,2,2,2,2,2,2,2,2,1,2,3,1],[1,1,2,1,2,1,2,1,1,1,1,1,2,1,2,1,2,1,1],[1,2,2,2,2,1,2,2,2,1,2,2,2,1,2,2,2,2,1],[1,2,1,1,1,1,1,1,2,1,2,1,1,1,1,1,1,2,1],[1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1],[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]]
-];
-
-const GHOST_CFG = [
-  { color:'#ff2020', name:'Blinky', delay:0, scatter:{x:17,y:0} },
-  { color:'#ffb8ff', name:'Pinky', delay:180, scatter:{x:1,y:0} },
-  { color:'#00ffff', name:'Inky', delay:360, scatter:{x:17,y:20} },
-  { color:'#ffb852', name:'Clyde', delay:540, scatter:{x:1,y:20} }
-];
-
-const SPEED_PACMAN = 8;
-const SPEED_GHOST = 10;
-const SPEED_GHOST_FRIGHT = 16;
-const SPEED_GHOST_EATEN = 5;
-
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
-canvas.width = CW; canvas.height = CH;
-
-let maze, dots, totalDots, eatenDots;
-let score, lives, coins, level;
-let pacman, ghosts;
-let frightenedTimer, modeTimer, currentMode;
-let gameState = 'menu';
-let animFrame, tickCount = 0;
-let particles = [], floatingTexts = [];
-let deathTimer = 0, levelUpTimer = 0, readyTimer = 0;
-
-function startGame() {
-  score = 0; lives = 3; coins = 0; level = 0;
-  particles = []; floatingTexts = [];
-  activeGameLoop = 'pacman';
-  initLevel();
-  showScreen('gameScreen');
-  updateHUD();
-}
-
-function initLevel() {
-  maze = MAZES[level].map(r => [...r]);
-  dots = []; totalDots = 0; eatenDots = 0;
-  for (let r = 0; r < ROWS; r++) {
-    dots[r] = [];
-    for (let c = 0; c < COLS; c++) {
-      if (maze[r][c] === 2 || maze[r][c] === 3) { dots[r][c] = maze[r][c]; totalDots++; }
-      else dots[r][c] = 0;
-    }
-  }
-
-  pacman = { gx:9, gy:15, dx:0, dy:0, ndx:0, ndy:0, mouth:0, mouthDir:1, angle:0, moveTimer:0 };
-
-  ghosts = GHOST_CFG.map((g, i) => ({
-    ...g, gx: 8 + (i%2), gy: 9,
-    dx: i%2===0 ? -1 : 1, dy: 0,
-    active: g.delay === 0, timer: g.delay,
-    frightened: false, eaten: false, moveTimer: 0,
-    path: null, pathIdx: 0
-  }));
-
-  frightenedTimer = 0;
-  currentMode = 'scatter';
-  modeTimer = 420;
-  tickCount = 0;
-  gameState = 'ready';
-  readyTimer = 120;
-  deathTimer = 0; levelUpTimer = 0;
-  particles = []; floatingTexts = [];
-
-  if (animFrame) cancelAnimationFrame(animFrame);
-  gameLoop();
-}
-
-function canMove(gx, gy, isGhost) {
-  if (gx < 0 || gx >= COLS || gy < 0 || gy >= ROWS) return false;
-  const c = maze[gy][gx];
-  if (c === 1) return false;
-  if (c === 5 || c === 7) return isGhost;
-  return true;
-}
-function wrapX(x) { return ((x % COLS) + COLS) % COLS; }
-
-function findPath(sx, sy, tx, ty) {
-  const visited = Array.from({length:ROWS}, ()=>Array(COLS).fill(false));
-  const parent = Array.from({length:ROWS}, ()=>Array(COLS).fill(null));
-  const queue = [{x:sx, y:sy}];
-  visited[sy][sx] = true;
-
-  while (queue.length > 0) {
-    const cur = queue.shift();
-    if (cur.x === tx && cur.y === ty) {
-      const path = [];
-      let c = {x:tx, y:ty};
-      while (c && !(c.x===sx && c.y===sy)) {
-        path.unshift(c);
-        c = parent[c.y][c.x];
-      }
-      return path;
-    }
-    const dirs = [{dx:0,dy:-1},{dx:-1,dy:0},{dx:0,dy:1},{dx:1,dy:0}];
-    for (const d of dirs) {
-      const nx = wrapX(cur.x+d.dx), ny = cur.y+d.dy;
-      if (!visited[ny][nx] && canMove(nx, ny, true)) {
-        visited[ny][nx] = true;
-        parent[ny][nx] = {x:cur.x, y:cur.y};
-        queue.push({x:nx, y:ny});
-      }
-    }
-  }
-  return null;
-}
-
-function movePacman() {
-  pacman.moveTimer++;
-  if (pacman.moveTimer < SPEED_PACMAN) return;
-  pacman.moveTimer = 0;
-
-  if (pacman.ndx !== 0 || pacman.ndy !== 0) {
-    const nx = wrapX(pacman.gx + pacman.ndx);
-    const ny = pacman.gy + pacman.ndy;
-    if (canMove(nx, ny, false)) { pacman.dx = pacman.ndx; pacman.dy = pacman.ndy; }
-  }
-
-  if (pacman.dx !== 0 || pacman.dy !== 0) {
-    const nx = wrapX(pacman.gx + pacman.dx);
-    const ny = pacman.gy + pacman.dy;
-    if (canMove(nx, ny, false)) {
-      pacman.gx = nx; pacman.gy = ny;
-      if(pacman.dx===1) pacman.angle=0;
-      else if(pacman.dx===-1) pacman.angle=Math.PI;
-      else if(pacman.dy===-1) pacman.angle=-Math.PI/2;
-      else if(pacman.dy===1) pacman.angle=Math.PI/2;
-
-      if (dots[ny][nx] === 2) {
-        dots[ny][nx] = 0; eatenDots++; score += 10; coins++;
-        spawnParticles(nx*CELL+CELL/2, ny*CELL+CELL/2, '#f0d078', 3);
-      } else if (dots[ny][nx] === 3) {
-        dots[ny][nx] = 0; eatenDots++; score += 50; coins += 5;
-        activateFrightened();
-        spawnParticles(nx*CELL+CELL/2, ny*CELL+CELL/2, '#ff4040', 8);
-        addFloatingText(nx*CELL+CELL/2, ny*CELL, 'POWER!', '#ff4040');
-      }
-
-      if (eatenDots >= totalDots) { gameState = 'levelup'; levelUpTimer = 120; return; }
-      checkGhostCollision();
-    } else {
-      pacman.dx = 0; pacman.dy = 0;
-    }
-  }
-  pacman.mouth += 0.15 * pacman.mouthDir;
-  if (pacman.mouth > 0.35) pacman.mouthDir = -1;
-  if (pacman.mouth < 0.02) pacman.mouthDir = 1;
-}
-
-function activateFrightened() {
-  frightenedTimer = 480;
-  ghosts.forEach(g => {
-    if (g.active && !g.eaten) {
-      g.frightened = true;
-      g.dx = -g.dx; g.dy = -g.dy;
-      g.path = null;
-    }
-  });
-}
-
-function getGhostTarget(g, idx) {
-  if (g.frightened) return { x: Math.random()*COLS|0, y: Math.random()*ROWS|0 };
-  if (currentMode === 'scatter') return g.scatter;
-  switch(idx) {
-    case 0: return {x:pacman.gx, y:pacman.gy};
-    case 1: return {x:pacman.gx+pacman.dx*4, y:pacman.gy+pacman.dy*4};
-    case 2: { const b=ghosts[0]; const ax=pacman.gx+pacman.dx*2, ay=pacman.gy+pacman.dy*2; return {x:ax+(ax-b.gx), y:ay+(ay-b.gy)}; }
-    case 3: { const dx=g.gx-pacman.gx, dy=g.gy-pacman.gy; if(dx*dx+dy*dy<64) return g.scatter; return {x:pacman.gx, y:pacman.gy}; }
-  }
-  return {x:pacman.gx, y:pacman.gy};
-}
-
-function moveGhost(g, idx) {
-  if (!g.active) {
-    g.timer--;
-    if (g.timer <= 0) g.active = true;
-    return;
-  }
-
-  if (g.eaten) {
-    if (!g.path) {
-      g.path = findPath(g.gx, g.gy, 9, 9);
-      g.pathIdx = 0;
-    }
-
-    let speed = SPEED_GHOST_EATEN;
-    g.moveTimer++;
-    if (g.moveTimer < speed) return;
-    g.moveTimer = 0;
-
-    if (g.path && g.pathIdx < g.path.length) {
-      const next = g.path[g.pathIdx];
-      g.dx = next.x - g.gx;
-      g.dy = next.y - g.gy;
-      g.gx = next.x;
-      g.gy = next.y;
-      g.pathIdx++;
-    }
-
-    if (g.gx === 9 && g.gy === 9) {
-      g.eaten = false;
-      g.frightened = false;
-      g.path = null;
-      g.pathIdx = 0;
-      g.dx = 0; g.dy = -1;
-    }
-    return;
-  }
-
-  let speed = g.frightened ? SPEED_GHOST_FRIGHT : SPEED_GHOST;
-  g.moveTimer++;
-  if (g.moveTimer < speed) return;
-  g.moveTimer = 0;
-
-  const dirs = [{dx:0,dy:-1},{dx:-1,dy:0},{dx:0,dy:1},{dx:1,dy:0}];
-  let valid = [];
-  
-  for (const d of dirs) {
-    const nx = wrapX(g.gx + d.dx), ny = g.gy + d.dy;
-    if (canMove(nx, ny, true)) {
-      if (d.dx === -g.dx && d.dy === -g.dy) continue;
-      valid.push(d);
-    }
-  }
-  
-  if (valid.length <= 1) {
-    valid = [];
-    for (const d of dirs) {
-      const nx = wrapX(g.gx + d.dx), ny = g.gy + d.dy;
-      if (canMove(nx, ny, true)) valid.push(d);
-    }
-  }
-  
-  if (valid.length === 0) return;
-
-  const target = getGhostTarget(g, idx);
-  let best = valid[0], bestDist = Infinity;
-  for (const d of valid) {
-    const nx = wrapX(g.gx + d.dx), ny = g.gy + d.dy;
-    const dist = (nx - target.x)**2 + (ny - target.y)**2;
-    if (dist < bestDist) { bestDist = dist; best = d; }
-  }
-  g.dx = best.dx; g.dy = best.dy;
-  g.gx = wrapX(g.gx + g.dx);
-  g.gy = g.gy + g.dy;
-}
-
-function checkGhostCollision() {
-  ghosts.forEach(g => {
-    if (!g.active) return;
-    if (g.gx === pacman.gx && g.gy === pacman.gy) {
-      if (g.frightened && !g.eaten) {
-        g.eaten = true; g.frightened = false;
-        score += 200; coins += 20;
-        spawnParticles(g.gx*CELL+CELL/2, g.gy*CELL+CELL/2, g.color, 12);
-        addFloatingText(g.gx*CELL+CELL/2, g.gy*CELL, '+200', g.color);
-      } else if (!g.eaten) {
-        gameState = 'dying'; deathTimer = 90;
-      }
-    }
-  });
-}
-
-function spawnParticles(x, y, color, count) {
-  for (let i = 0; i < count; i++) {
-    const a = Math.random()*Math.PI*2, sp = Math.random()*2+0.5;
-    particles.push({ x, y, vx:Math.cos(a)*sp, vy:Math.sin(a)*sp, life:30+Math.random()*20, maxLife:50, color, r:Math.random()*3+1 });
-  }
-}
-function addFloatingText(x, y, text, color) { floatingTexts.push({ x, y, text, color, life:60 }); }
-function updateParticles() {
-  particles = particles.filter(p => { p.x+=p.vx; p.y+=p.vy; p.vy+=0.03; p.life--; return p.life>0; });
-  floatingTexts = floatingTexts.filter(f => { f.y-=0.8; f.life--; return f.life>0; });
-}
-
-function draw() {
-  ctx.clearRect(0,0,CW,CH);
-  ctx.fillStyle='#000'; ctx.fillRect(0,0,CW,CH);
-
-  for (let r=0;r<ROWS;r++) for (let c=0;c<COLS;c++) {
-    const x=c*CELL, y=r*CELL, cell=maze[r][c];
-    if (cell===1) {
-      ctx.fillStyle='#1a1a40'; ctx.fillRect(x+1,y+1,CELL-2,CELL-2);
-      ctx.strokeStyle='#2a2a70'; ctx.lineWidth=1; ctx.strokeRect(x+1.5,y+1.5,CELL-3,CELL-3);
-      ctx.fillStyle='rgba(80,80,180,0.15)'; ctx.fillRect(x+2,y+2,CELL-4,3);
-    } else if (cell===5) {
-      ctx.fillStyle='#ff80c0'; ctx.fillRect(x,y+CELL/2-2,CELL,4);
-    }
-  }
-
-  for (let r=0;r<ROWS;r++) for (let c=0;c<COLS;c++) {
-    const x=c*CELL+CELL/2, y=r*CELL+CELL/2;
-    if (dots[r][c]===2) {
-      ctx.fillStyle='#f0d078'; ctx.beginPath(); ctx.arc(x,y,2.5,0,Math.PI*2); ctx.fill();
-    } else if (dots[r][c]===3) {
-      const s=6+Math.sin(tickCount*0.1)*2;
-      ctx.fillStyle=`rgba(255,80,80,${0.7+Math.sin(tickCount*0.1)*0.3})`;
-      ctx.shadowColor='#ff4040'; ctx.shadowBlur=10;
-      ctx.beginPath(); ctx.arc(x,y,Math.max(1,s),0,Math.PI*2); ctx.fill();
-      ctx.shadowBlur=0;
-    }
-  }
-
-  ghosts.forEach((g,i) => { if(g.active || g.timer<=0) drawGhost(g,i); });
-
-  if (gameState!=='dying') drawPacman();
-  else drawPacmanDying();
-
-  particles.forEach(p => {
-    ctx.globalAlpha=p.life/p.maxLife; ctx.fillStyle=p.color;
-    ctx.beginPath(); ctx.arc(p.x,p.y,Math.max(0.5,p.r*(p.life/p.maxLife)),0,Math.PI*2); ctx.fill();
-  });
-  ctx.globalAlpha=1;
-
-  floatingTexts.forEach(f => {
-    ctx.globalAlpha=f.life/60; ctx.fillStyle=f.color;
-    ctx.font='bold 12px Orbitron'; ctx.textAlign='center'; ctx.fillText(f.text,f.x,f.y);
-  });
-  ctx.globalAlpha=1;
-
-  if (gameState==='ready') {
-    ctx.fillStyle='rgba(0,0,0,0.5)'; ctx.fillRect(0,0,CW,CH);
-    ctx.fillStyle='#f0d078'; ctx.font='bold 24px Orbitron'; ctx.textAlign='center';
-    ctx.fillText('LISTO!',CW/2,CH/2+8);
-  }
-  if (gameState==='paused') {
-    ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.fillRect(0,0,CW,CH);
-    ctx.fillStyle='#f0d078'; ctx.font='bold 28px Orbitron'; ctx.textAlign='center';
-    ctx.fillText('PAUSA',CW/2,CH/2-10);
-    ctx.font='14px Space Grotesk'; ctx.fillStyle='#888'; ctx.fillText('Pulsa P para reanudar',CW/2,CH/2+20);
-  }
-  if (gameState==='levelup') {
-    ctx.fillStyle=`rgba(0,0,0,${Math.min(0.7,levelUpTimer/120*0.7)})`; ctx.fillRect(0,0,CW,CH);
-    ctx.fillStyle='#40d870'; ctx.font='bold 22px Orbitron'; ctx.textAlign='center';
-    ctx.fillText('NIVEL COMPLETADO',CW/2,CH/2+8);
-  }
-}
-
-function drawPacman() {
-  const cx=pacman.gx*CELL+CELL/2, cy=pacman.gy*CELL+CELL/2, r=CELL/2-2;
-  const mouth=pacman.mouth*Math.PI;
-  ctx.save(); ctx.translate(cx,cy); ctx.rotate(pacman.angle);
-  ctx.shadowColor='#f0d078'; ctx.shadowBlur=12;
-  ctx.fillStyle='#f0d078'; ctx.beginPath(); ctx.moveTo(0,0);
-  ctx.arc(0,0,Math.max(1,r),mouth,-mouth+Math.PI*2); ctx.closePath(); ctx.fill();
-  ctx.shadowBlur=0; ctx.fillStyle='#111'; ctx.beginPath(); ctx.arc(2,-r*0.45,2,0,Math.PI*2); ctx.fill();
-  ctx.restore();
-}
-
-function drawPacmanDying() {
-  const cx=pacman.gx*CELL+CELL/2, cy=pacman.gy*CELL+CELL/2, r=CELL/2-2;
-  const progress=1-deathTimer/90, mouth=progress*Math.PI;
-  ctx.save(); ctx.translate(cx,cy); ctx.rotate(pacman.angle);
-  ctx.globalAlpha=1-progress*0.5; ctx.fillStyle='#f0d078'; ctx.beginPath(); ctx.moveTo(0,0);
-  ctx.arc(0,0,Math.max(1,r*(1-progress*0.3)),mouth,-mouth+Math.PI*2); ctx.closePath(); ctx.fill();
-  ctx.restore();
-}
-
-function drawGhost(g, idx) {
-  if (!g.active && g.timer > 0) return;
-  const cx=g.gx*CELL+CELL/2, cy=g.gy*CELL+CELL/2, s=CELL/2-2;
-  let color = g.color;
-  
-  if (g.eaten) { 
-    drawGhostEyes(cx,cy,s,g); 
-    return; 
-  }
-  
-  if (g.frightened) color = frightenedTimer<120&&(tickCount%20<10) ? '#fff' : '#2020cc';
-
-  ctx.fillStyle=color; ctx.beginPath();
-  ctx.arc(cx,cy-2,s,Math.PI,0,false); ctx.lineTo(cx+s,cy+s-2);
-  for (let i=0;i<3;i++) {
-    const x1=cx+s-(i*2+1)*s/3, x2=cx+s-(i*2+2)*s/3, ym=cy+s-2+(i%2===0?4:0);
-    ctx.quadraticCurveTo((x1+x2)/2,ym,x2,cy+s-2);
-  }
-  ctx.closePath(); ctx.fill();
-
-  if (g.frightened) {
-    ctx.fillStyle='#fff'; ctx.beginPath();
-    ctx.arc(cx-4,cy-3,2.5,0,Math.PI*2); ctx.arc(cx+4,cy-3,2.5,0,Math.PI*2); ctx.fill();
-    ctx.strokeStyle='#fff'; ctx.lineWidth=1; ctx.beginPath();
-    for(let i=0;i<4;i++){const bx=cx-6+i*4;ctx.moveTo(bx,cy+4);ctx.lineTo(bx+2,cy+6);ctx.lineTo(bx+4,cy+4);}
-    ctx.stroke();
-  } else drawGhostEyes(cx,cy,s,g);
-}
-
-function drawGhostEyes(cx,cy,s,g) {
-  ctx.fillStyle='#fff';
-  ctx.beginPath(); ctx.ellipse(cx-4,cy-4,4,5,0,0,Math.PI*2); ctx.fill();
-  ctx.beginPath(); ctx.ellipse(cx+4,cy-4,4,5,0,0,Math.PI*2); ctx.fill();
-  const pdx=g.dx*2, pdy=g.dy*2; ctx.fillStyle='#2020aa';
-  ctx.beginPath(); ctx.arc(cx-4+pdx,cy-4+pdy,2,0,Math.PI*2); ctx.fill();
-  ctx.beginPath(); ctx.arc(cx+4+pdx,cy-4+pdy,2,0,Math.PI*2); ctx.fill();
-}
-
-function updateHUD() {
-  document.getElementById('hudScore').textContent = score;
-  document.getElementById('hudLevel').textContent = level + 1;
-  document.getElementById('hudCoins').innerHTML = `<i class="fas fa-coins" style="font-size:.7rem"></i> ${coins}`;
-  let l=''; for(let i=0;i<3;i++) l+=`<div class="life-icon ${i<lives?'':'lost'}"></div>`;
-  document.getElementById('hudLives').innerHTML = l;
-}
-
-function gameLoop() {
-  if (activeGameLoop !== 'pacman') return;
-  tickCount++;
-
-  if (gameState==='ready') { readyTimer--; if(readyTimer<=0) gameState='playing'; }
-
-  if (gameState==='playing') {
-    movePacman();
-    ghosts.forEach((g,i) => moveGhost(g,i));
-    if(gameState==='playing') checkGhostCollision();
-
-    if (frightenedTimer>0) { frightenedTimer--; if(frightenedTimer<=0) ghosts.forEach(g=>{g.frightened=false;}); }
-    
-    modeTimer--;
-    if (modeTimer<=0) {
-      currentMode = currentMode==='scatter'?'chase':'scatter';
-      modeTimer = currentMode==='scatter'? 420 : 1200;
-      ghosts.forEach(g=>{ if(g.active&&!g.frightened&&!g.eaten){g.dx=-g.dx;g.dy=-g.dy;} });
-    }
-    updateParticles(); updateHUD();
-  }
-
-  if (gameState==='dying') {
-    deathTimer--; updateParticles();
-    if (deathTimer<=0) {
-      lives--;
-      if (lives<=0) {
-        document.getElementById('goScore').textContent=score;
-        document.getElementById('goCoins').textContent=coins;
-        document.getElementById('goLevel').textContent=level+1;
-        showScreen('gameOverScreen'); 
-        offerAlias('pacman', score);
-        return;
-      }
-      pacman.gx=9;pacman.gy=15;pacman.dx=0;pacman.dy=0;pacman.moveTimer=0;
-      ghosts.forEach((g,i)=>{
-        g.gx=8+(i%2);g.gy=9;g.dx=i%2===0?-1:1;g.dy=0;
-        g.active=g.delay===0;g.timer=g.delay;g.moveTimer=0;
-        g.frightened=false;g.eaten=false;g.path=null;g.pathIdx=0;
-      });
-      frightenedTimer=0; currentMode='scatter'; modeTimer=420;
-      gameState='ready'; readyTimer=90;
-    }
-  }
-
-  if (gameState==='levelup') {
-    levelUpTimer--; updateParticles();
-    if (levelUpTimer<=0) {
-      level++;
-      if (level>=MAZES.length) {
-        document.getElementById('winScore').textContent=score;
-        document.getElementById('winCoins').textContent=coins;
-        showScreen('winScreen'); 
-        offerAlias('pacman', score);
-        return;
-      }
-      initLevel();
-    }
-  }
-
-  draw();
-  animFrame = requestAnimationFrame(gameLoop);
-}
-
-const invCanvas = document.getElementById('invCanvas');
-const ictx = invCanvas.getContext('2d');
-const IW = 480, IH = 540;
-invCanvas.width = IW; invCanvas.height = IH;
-
-let invState = {
-  score: 0, hi: 0, wave: 1, lives: 3,
-  phase: 'menu', readyTimer: 90,
-  player: null, bullets: [], enemyBullets: [],
-  invaders: [], shields: [],
-  dir: 1, stepTimer: 0, stepDelay: 48,
-  fireTimer: 0, fireDelay: 60,
-  particles: [], stars: [],
-  flashTimer: 0, deathTimer: 0, waveTimer: 0,
-  keys: {}, _looping: false
-};
-
-const INV_SPRITES = {
-  0: ["..XXXX..",".XXXXXX.","XXXXXXX","XX.XX.XX","XXXXXXX",".X.X.X.","X.X...X.",".X...X."],
-  1: ["..X.....X..","...X...X...","..XXXXXXX..",".XX.XXX.XX.","XXXXXXXXXXX","X.XXXXXXX.X","X.X.....X.X","...XX.XX..."],
-  2: ["....XXXX....",".XXXXXXXXXX.","XXXXXXXXXXXX","XXX..XX..XXX","XXXXXXXXXXXX","..XX.XX.XX..",".XX.X..X.XX.","XX..........XX"]
-};
-const INV_SPRITES_ALT = {
-  0: ["..XXXX..",".XXXXXX.","XXXXXXX","XX.XX.XX","XXXXXXX","X.X.X.X.","X.X.X.X..",".X...X."],
-  1: ["..X.....X..","X.X.....X.X","X.XXXXXXX.X","XXX.XXX.XXX","XXXXXXXXXXX",".XXXXXXXXX.","..X.....X..",".X.......X."],
-  2: ["....XXXX....",".XXXXXXXXXX.","XXXXXXXXXXXX","XXX..XX..XXX","XXXXXXXXXXXX","...XX.XX....","..XX...XX...",".XX..XX..XX."]
-};
-
-function invReset() {
-  invState.score = 0; invState.wave = 1; invState.lives = 3;
-  invInitWave();
-}
-
-function invInitWave() {
-  invState.invaders = [];
-  const cols = 11, rows = 5;
-  const startX = 40, startY = 60;
-  const gapX = 32, gapY = 28;
-  for (let r = 0; r < rows; r++) {
-    let type = (r === 0) ? 0 : (r <= 2 ? 1 : 2);
-    const pts = type === 0 ? 30 : type === 1 ? 20 : 10;
-    for (let c = 0; c < cols; c++) {
-      invState.invaders.push({ x: startX + c * gapX, y: startY + r * gapY, type, pts, alive: true, frame: 0 });
-    }
-  }
-  invState.shields = [];
-  const shieldCount = 4;
-  const shieldW = 60, shieldStartX = (IW - (shieldCount * 60 + (shieldCount - 1) * 40)) / 2;
-  const shieldY = IH - 100;
-  for (let s = 0; s < shieldCount; s++) {
-    const sx = shieldStartX + s * 100;
-    const blocks = [];
-    for (let by = 0; by < 4; by++) {
-      for (let bx = 0; bx < 10; bx++) {
-        if (by === 3 && bx >= 3 && bx <= 6) continue;
-        blocks.push({ x: sx + bx * 6, y: shieldY + by * 9, w: 6, h: 9, hp: 3 });
-      }
-    }
-    invState.shields.push({ blocks });
-  }
-  invState.player = { x: IW / 2 - 16, y: IH - 40, w: 32, h: 14, vx: 0, alive: true, blink: 0 };
-  invState.bullets = []; invState.enemyBullets = [];
-  invState.dir = 1; invState.stepTimer = 0;
-  invState.stepDelay = Math.max(14, 48 - (invState.wave - 1) * 4);
-  invState.fireTimer = 0; invState.fireDelay = Math.max(28, 70 - (invState.wave - 1) * 6);
-  invState.phase = 'ready'; invState.readyTimer = 80;
-  invState.deathTimer = 0; invState.waveTimer = 0; invState.flashTimer = 0;
-  invState.particles = [];
-  if (invState.stars.length === 0) {
-    for (let i = 0; i < 60; i++) {
-      invState.stars.push({ x: Math.random() * IW, y: Math.random() * IH, s: Math.random() * 1.4 + 0.3, a: Math.random() * 0.5 + 0.2, tw: Math.random() * Math.PI * 2 });
-    }
-  }
-}
-
-function startInvaders() {
-  activeGameLoop = 'invaders';
-  invReset();
-  showScreen('invadersScreen');
-  invResize();
-  if (!invState._looping) { invState._looping = true; invLoop(); }
-}
-
-function invUpdateHUD() {
-  document.getElementById('invScore').textContent = invState.score;
-  document.getElementById('invWave').textContent = invState.wave;
-  document.getElementById('invHi').textContent = invState.hi;
-  let l = ''; for (let i = 0; i < 3; i++) l += `<div class="life-icon ${i < invState.lives ? '' : 'lost'}"></div>`;
-  document.getElementById('invLives').innerHTML = l;
-}
-
-function invFire() {
-  if (invState.bullets.length >= 1 || !invState.player.alive || invState.phase !== 'playing') return;
-  invState.bullets.push({ x: invState.player.x + invState.player.w / 2, y: invState.player.y, vy: -7, alive: true });
-}
-
-function invEnemyFire() {
-  const cols = {};
-  invState.invaders.forEach(iv => {
-    if (!iv.alive) return;
-    const colKey = Math.round(iv.x / 32);
-    if (!cols[colKey] || iv.y > cols[colKey].y) cols[colKey] = iv;
-  });
-  const shooters = Object.values(cols);
-  if (shooters.length === 0) return;
-  const sh = shooters[Math.floor(Math.random() * shooters.length)];
-  invState.enemyBullets.push({ x: sh.x + 8, y: sh.y + 8, vy: 3.5 + invState.wave * 0.2, alive: true, wig: 0 });
-}
-
-function invSpawnExplosion(x, y, color, n = 10) {
-  for (let i = 0; i < n; i++) {
-    const a = Math.random() * Math.PI * 2, sp = Math.random() * 2.5 + 0.5;
-    invState.particles.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: 24 + Math.random() * 12, max: 36, color, r: Math.random() * 2 + 1 });
-  }
-}
-
-function invStep() {
-  let hitEdge = false;
-  invState.invaders.forEach(iv => { if (iv.alive) { iv.x += invState.dir * 4; iv.frame = 1 - iv.frame; } });
-  for (const iv of invState.invaders) {
-    if (iv.alive && (iv.x < 8 || iv.x + 16 > IW - 8)) { hitEdge = true; break; }
-  }
-  if (hitEdge) {
-    invState.dir *= -1;
-    invState.invaders.forEach(iv => { if (iv.alive) iv.y += 14; });
-  }
-  const aliveCount = invState.invaders.filter(i => i.alive).length;
-  invState.stepDelay = Math.max(8, 8 + aliveCount * 1.6 - invState.wave * 2);
-  for (const iv of invState.invaders) {
-    if (iv.alive && iv.y + 16 >= invState.player.y - 6) { invState.phase = 'gameover'; return; }
-  }
-}
-
-function invUpdate() {
-  invState.stars.forEach(s => { s.tw += 0.05; s.y += s.s * 0.3; if (s.y > IH) { s.y = 0; s.x = Math.random() * IW; } });
-  invState.particles = invState.particles.filter(p => { p.x += p.vx; p.y += p.vy; p.vy += 0.05; p.life--; return p.life > 0; });
-  if (invState.flashTimer > 0) invState.flashTimer--;
-
-  if (invState.phase === 'ready') {
-    invState.readyTimer--;
-    if (invState.readyTimer <= 0) invState.phase = 'playing';
-    return;
-  }
-  if (invState.phase !== 'playing') return;
-
-  const p = invState.player;
-  if (p.alive) {
-    if (p.blink > 0) p.blink--;
-    let vx = 0;
-    if (invState.keys.left) vx = -3.2;
-    if (invState.keys.right) vx = 3.2;
-    p.x += vx;
-    if (p.x < 8) p.x = 8;
-    if (p.x + p.w > IW - 8) p.x = IW - 8 - p.w;
-  }
-
-  invState.stepTimer++;
-  if (invState.stepTimer >= invState.stepDelay) { invState.stepTimer = 0; invStep(); if (invState.phase === 'gameover') return; }
-
-  invState.fireTimer++;
-  if (invState.fireTimer >= invState.fireDelay) { invState.fireTimer = 0; invEnemyFire(); }
-
-  invState.bullets.forEach(b => { b.y += b.vy; });
-  invState.bullets = invState.bullets.filter(b => b.alive && b.y > -10);
-
-  invState.enemyBullets.forEach(b => { b.y += b.vy; b.wig += 0.3; b.x += Math.sin(b.wig) * 0.6; });
-  invState.enemyBullets = invState.enemyBullets.filter(b => b.alive && b.y < IH + 10);
-
-  invState.bullets.forEach(b => {
-    if (!b.alive) return;
-    for (const iv of invState.invaders) {
-      if (!iv.alive) continue;
-      if (b.x >= iv.x && b.x <= iv.x + 16 && b.y >= iv.y && b.y <= iv.y + 14) {
-        iv.alive = false; b.alive = false; invState.score += iv.pts;
-        if (invState.score > invState.hi) invState.hi = invState.score;
-        invSpawnExplosion(iv.x + 8, iv.y + 7, iv.type === 0 ? '#ff60d0' : iv.type === 1 ? '#40e0ff' : '#f0d078', 10);
-        break;
-      }
-    }
-  });
-
-  invState.bullets.forEach(b => { if (b.alive) invHitShield(b, false); });
-  invState.enemyBullets.forEach(b => { if (b.alive) invHitShield(b, true); });
-
-  if (p.alive && p.blink === 0) {
-    invState.enemyBullets.forEach(b => {
-      if (b.alive && b.x >= p.x && b.x <= p.x + p.w && b.y >= p.y && b.y <= p.y + p.h) {
-        b.alive = false; p.alive = false;
-        invSpawnExplosion(p.x + p.w / 2, p.y + p.h / 2, '#f0d078', 18);
-        invState.flashTimer = 12; invState.deathTimer = 70;
-      }
-    });
-  }
-
-  if (invState.invaders.every(i => !i.alive)) { invState.phase = 'waveup'; invState.waveTimer = 100; }
-
-  if (!p.alive && invState.deathTimer > 0) {
-    invState.deathTimer--;
-    if (invState.deathTimer <= 0) {
-      invState.lives--;
-      if (invState.lives <= 0) { invState.phase = 'gameover'; }
-      else { p.alive = true; p.blink = 60; p.x = IW / 2 - p.w / 2; invState.bullets = []; invState.enemyBullets = []; }
-    }
-  }
-
-  invUpdateHUD();
-}
-
-function invHitShield(b, fromEnemy) {
-  for (const s of invState.shields) {
-    for (const blk of s.blocks) {
-      if (blk.hp <= 0) continue;
-      if (b.x >= blk.x && b.x <= blk.x + blk.w && b.y >= blk.y && b.y <= blk.y + blk.h) {
-        b.alive = false; blk.hp--;
-        invSpawnExplosion(blk.x + 3, blk.y + 4, '#40d870', 4);
-        return;
-      }
-    }
-  }
-}
-
-function invDrawSprite(sprite, x, y, color) {
-  ictx.fillStyle = color;
-  for (let r = 0; r < sprite.length; r++) {
-    for (let c = 0; c < sprite[r].length; c++) {
-      if (sprite[r][c] === 'X') ictx.fillRect(x + c * 2, y + r * 2, 2, 2);
-    }
-  }
-}
-
-function invDraw() {
-  ictx.fillStyle = '#000'; ictx.fillRect(0, 0, IW, IH);
-  invState.stars.forEach(s => { ictx.fillStyle = `rgba(240,208,120,${s.a * (0.6 + Math.sin(s.tw) * 0.4)})`; ictx.fillRect(s.x, s.y, s.s, s.s); });
-
-  if (invState.flashTimer > 0) { ictx.fillStyle = `rgba(255,80,80,${invState.flashTimer / 12 * 0.3})`; ictx.fillRect(0, 0, IW, IH); }
-
-  invState.invaders.forEach(iv => {
-    if (!iv.alive) return;
-    invDrawSprite(iv.frame === 0 ? INV_SPRITES[iv.type] : INV_SPRITES_ALT[iv.type], iv.x, iv.y, iv.type === 0 ? '#ff60d0' : iv.type === 1 ? '#40e0ff' : '#f0d078');
-  });
-
-  invState.shields.forEach(s => {
-    s.blocks.forEach(b => { if (b.hp > 0) { ictx.fillStyle = `rgba(64,216,112,${0.4 + (b.hp / 3) * 0.6})`; ictx.fillRect(b.x, b.y, b.w, b.h); } });
-  });
-
-  const p = invState.player;
-  if (p.alive && (p.blink === 0 || Math.floor(p.blink / 4) % 2 === 0)) {
-    ictx.fillStyle = '#f0d078'; ictx.fillRect(p.x + 4, p.y + 4, p.w - 8, 4); ictx.fillRect(p.x + 2, p.y + 8, p.w - 4, 4); ictx.fillRect(p.x, p.y + 12, p.w, 2); ictx.fillRect(p.x + p.w / 2 - 2, p.y, 4, 4);
-  }
-
-  invState.bullets.forEach(b => { ictx.fillStyle = '#fff'; ictx.fillRect(b.x - 1, b.y - 6, 2, 8); });
-  invState.enemyBullets.forEach(b => { ictx.fillStyle = '#ff6060'; ictx.fillRect(b.x - 1, b.y, 2, 8); });
-
-  invState.particles.forEach(p => { ictx.globalAlpha = p.life / p.max; ictx.fillStyle = p.color; ictx.fillRect(p.x - p.r / 2, p.y - p.r / 2, p.r, p.r); });
-  ictx.globalAlpha = 1;
-
-  if (invState.phase === 'ready') {
-    ictx.fillStyle = 'rgba(0,0,0,0.55)'; ictx.fillRect(0, 0, IW, IH);
-    ictx.fillStyle = '#f0d078'; ictx.font = 'bold 24px Orbitron'; ictx.textAlign = 'center'; ictx.fillText('DEFIENDE LA TIERRA', IW / 2, IH / 2 - 8);
-    ictx.font = '14px Space Grotesk'; ictx.fillStyle = '#888'; ictx.fillText('Oleada ' + invState.wave, IW / 2, IH / 2 + 18);
-  }
-  if (invState.phase === 'paused') {
-    ictx.fillStyle = 'rgba(0,0,0,0.65)'; ictx.fillRect(0, 0, IW, IH);
-    ictx.fillStyle = '#f0d078'; ictx.font = 'bold 28px Orbitron'; ictx.textAlign = 'center'; ictx.fillText('PAUSA', IW / 2, IH / 2);
-  }
-  if (invState.phase === 'gameover') {
-    ictx.fillStyle = 'rgba(0,0,0,0.75)'; ictx.fillRect(0, 0, IW, IH);
-    ictx.fillStyle = '#e04050'; ictx.font = 'bold 30px Orbitron'; ictx.textAlign = 'center'; ictx.fillText('GAME OVER', IW / 2, IH / 2 - 20);
-    ictx.fillStyle = '#f0d078'; ictx.font = '16px Orbitron'; ictx.fillText('PUNTOS: ' + invState.score, IW / 2, IH / 2 + 10);
-  }
-}
-
-function invLoop() {
-  if (activeGameLoop !== 'invaders') return;
-  const wasGameOver = invState.phase === 'gameover';
-  invUpdate();
-  if (invState.phase === 'waveup') {
-    invState.waveTimer--;
-    if (invState.waveTimer <= 0) { invState.wave++; invInitWave(); }
-  }
-  if (invState.phase === 'gameover' && !wasGameOver) { offerAlias('invaders', invState.score); }
-  invDraw();
-  requestAnimationFrame(invLoop);
-}
-
-const galCanvas = document.getElementById('galCanvas');
-const gctx = galCanvas.getContext('2d');
-const GW = 480, GH = 560;
-galCanvas.width = GW; galCanvas.height = GH;
-
-const GAL_TYPES = {
-  bee:       { color:'#ffd23f', pts:50,  hp:1, w:20, h:16 },
-  butterfly: { color:'#40e0ff', pts:80,  hp:1, w:22, h:18 },
-  boss:      { color:'#ff5050', pts:150, hp:2, w:26, h:20 }
-};
-
-let gal = {
-  score:0, hi:0, wave:1, lives:3,
-  phase:'menu', readyTimer:80,
-  player:null, bullets:[], enemyBullets:[],
-  enemies:[], stars:[],
-  diveTimer:0, diveDelay:90,
-  waveTimer:0, deathTimer:0, flashTimer:0,
-  tick:0, keys:{}, _looping:false
-};
-let galParticles = [];
-
-function galBuildFormation() {
-  const cols=8, gapX=(GW-100)/(cols-1), startX=50, startY=50, gapY=34;
-  const slots = [];
-  for (let r=0;r<5;r++) {
-    let type = r===0?'boss': (r<=2?'butterfly':'bee');
-    for (let c=0;c<cols;c++) {
-      if (r===0 && (c<2 || c>5)) continue;
-      slots.push({ col:c, row:r, type, sx:startX+c*gapX, sy:startY+r*gapY });
-    }
-  }
-  return slots;
-}
-
-function galInitWave() {
-  const slots = galBuildFormation();
-  gal.enemies = slots.map((s, i) => {
-    const fromLeft = i % 2 === 0;
-    return {
-      type:s.type, hp:GAL_TYPES[s.type].hp, alive:true, slotX:s.sx, slotY:s.sy,
-      x: fromLeft ? -30 : GW+30, y:-40, state:'entering',
-      entryFrom: fromLeft ? {x:-30,y:-40} : {x:GW+30,y:-40},
-      entryCtrl: { x: fromLeft ? GW*0.25 : GW*0.75, y: GH*0.35 },
-      entryDur: 70, entryT: -i*6,
-      diveT:0, diveDur:0, diveFrom:null, diveCtrl1:null, diveMid:null, diveCtrl2:null, fired:false
-    };
-  });
-  gal.bullets = []; gal.enemyBullets = [];
-  gal.diveTimer = 0; gal.diveDelay = Math.max(40, 100 - gal.wave*6);
-  gal.phase = 'ready'; gal.readyTimer = 80;
-  gal.waveTimer = 0; gal.deathTimer = 0; gal.flashTimer = 0;
-  if (gal.stars.length===0) {
-    for (let i=0;i<70;i++) gal.stars.push({x:Math.random()*GW,y:Math.random()*GH,s:Math.random()*1.4+.3,a:Math.random()*.5+.2});
-  }
-}
-
-function galReset() {
-  gal.score=0; gal.wave=1; gal.lives=3;
-  gal.player = { x:GW/2-16, y:GH-44, w:32, h:16, alive:true, blink:0 };
-  galInitWave();
-}
-
-function startGalaga() {
-  activeGameLoop = 'galaga';
-  galReset();
-  showScreen('galagaScreen');
-  galResize();
-  if (!gal._looping) { gal._looping = true; galLoop(); }
-}
-
-function galUpdateHUD() {
-  document.getElementById('galScore').textContent = gal.score;
-  document.getElementById('galWave').textContent = gal.wave;
-  document.getElementById('galHi').textContent = gal.hi;
-  let l=''; for(let i=0;i<3;i++) l+=`<div class="life-icon ${i<gal.lives?'':'lost'}"></div>`;
-  document.getElementById('galLives').innerHTML = l;
-}
-
-function galFire() {
-  if (gal.bullets.length>=2 || !gal.player.alive || gal.phase !== 'playing') return;
-  gal.bullets.push({ x:gal.player.x+gal.player.w/2, y:gal.player.y, vy:-7, alive:true });
-}
-
-function bezier2(p0,c,p2,t){
-  const u=1-t;
-  return { x:u*u*p0.x+2*u*t*c.x+t*t*p2.x, y:u*u*p0.y+2*u*t*c.y+t*t*p2.y };
-}
-
-function galStartDive() {
-  const candidates = gal.enemies.filter(e=>e.alive && e.state==='formation');
-  if (candidates.length===0) return;
-  const e = candidates[Math.floor(Math.random()*candidates.length)];
-  e.state='diving'; e.diveT=0; e.diveDur = 110 + Math.random()*30;
-  e.diveFrom = { x:e.x, y:e.y };
-  const swoopSide = Math.random()<0.5?-1:1;
-  e.diveCtrl1 = { x:e.x+swoopSide*120, y:GH*0.45 };
-  e.diveMid   = { x: gal.player.x+gal.player.w/2 + (Math.random()*80-40), y:GH-90 };
-  e.diveCtrl2 = { x:e.slotX-swoopSide*120, y:GH*0.45 };
-  e.fired=false;
-}
-
-function galUpdate() {
-  gal.tick++;
-  gal.stars.forEach(s=>{ s.y+=s.s*0.4; if(s.y>GH){s.y=0;s.x=Math.random()*GW;} });
-  if (gal.flashTimer>0) gal.flashTimer--;
-
-  if (gal.phase==='ready') { gal.readyTimer--; if(gal.readyTimer<=0) gal.phase='playing'; return; }
-  if (gal.phase!=='playing') return;
-
-  const p = gal.player;
-  if (p.alive) {
-    if (p.blink>0) p.blink--;
-    let vx=0;
-    if (gal.keys.left) vx=-3.4;
-    if (gal.keys.right) vx=3.4;
-    p.x += vx;
-    if (p.x<8) p.x=8;
-    if (p.x+p.w>GW-8) p.x=GW-8-p.w;
-  }
-
-  const sway = Math.sin(gal.tick*0.04)*14;
-
-  gal.enemies.forEach(e=>{
-    if (!e.alive) return;
-    if (e.state==='entering') {
-      e.entryT++; if (e.entryT<0) return;
-      const t = Math.min(1, e.entryT/e.entryDur);
-      const pos = bezier2(e.entryFrom, e.entryCtrl, {x:e.slotX,y:e.slotY}, t);
-      e.x=pos.x; e.y=pos.y; if (t>=1) e.state='formation';
-    } else if (e.state==='formation') {
-      e.x = e.slotX + sway; e.y = e.slotY;
-    } else if (e.state==='diving') {
-      e.diveT++; const half = e.diveDur/2;
-      if (e.diveT<=half) {
-        const t = e.diveT/half; const pos = bezier2(e.diveFrom, e.diveCtrl1, e.diveMid, t);
-        e.x=pos.x; e.y=pos.y;
-        if (!e.fired && t>0.85) { e.fired=true; gal.enemyBullets.push({ x:e.x, y:e.y, vy:4+gal.wave*0.2, alive:true }); }
-      } else {
-        const t = (e.diveT-half)/half; const pos = bezier2(e.diveMid, e.diveCtrl2, {x:e.slotX,y:e.slotY}, t);
-        e.x=pos.x; e.y=pos.y; if (t>=1) e.state='formation';
-      }
-    }
-  });
-
-  gal.diveTimer++; if (gal.diveTimer>=gal.diveDelay) { gal.diveTimer=0; galStartDive(); }
-
-  gal.bullets.forEach(b=>b.y+=b.vy);
-  gal.bullets = gal.bullets.filter(b=>b.alive && b.y>-10);
-  gal.enemyBullets.forEach(b=>b.y+=b.vy);
-  gal.enemyBullets = gal.enemyBullets.filter(b=>b.alive && b.y<GH+10);
-
-  gal.bullets.forEach(b=>{
-    if(!b.alive) return;
-    for (const e of gal.enemies) {
-      if (!e.alive) continue;
-      const cfg = GAL_TYPES[e.type];
-      if (b.x>=e.x-cfg.w/2 && b.x<=e.x+cfg.w/2 && b.y>=e.y-cfg.h/2 && b.y<=e.y+cfg.h/2) {
-        b.alive=false; e.hp--;
-        if (e.hp<=0) { e.alive=false; gal.score+=cfg.pts; if (gal.score>gal.hi) gal.hi=gal.score; galSpawnBoom(e.x,e.y,cfg.color); }
-        break;
-      }
-    }
-  });
-
-  if (p.alive && p.blink===0) {
-    gal.enemyBullets.forEach(b=>{ if(b.alive && b.x>=p.x && b.x<=p.x+p.w && b.y>=p.y && b.y<=p.y+p.h) { b.alive=false; galKillPlayer(); } });
-    gal.enemies.forEach(e=>{
-      if (!e.alive || e.state!=='diving') return;
-      const cfg=GAL_TYPES[e.type];
-      if (e.x+cfg.w/2>p.x && e.x-cfg.w/2<p.x+p.w && e.y+cfg.h/2>p.y && e.y-cfg.h/2<p.y+p.h) { e.alive=false; galKillPlayer(); }
-    });
-  }
-
-  if (gal.enemies.every(e=>!e.alive)) { gal.phase='waveup'; gal.waveTimer=100; }
-  galUpdateHUD();
-}
-
-function galKillPlayer() {
-  gal.player.alive=false; gal.flashTimer=12; gal.deathTimer=70;
-  galSpawnBoom(gal.player.x+gal.player.w/2, gal.player.y+gal.player.h/2, '#f0d078', 18);
-}
-
-function galSpawnBoom(x,y,color,n=10){
-  for(let i=0;i<n;i++){
-    const a=Math.random()*Math.PI*2, sp=Math.random()*2.5+.5;
-    galParticles.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,life:24+Math.random()*12,max:36,color,r:Math.random()*2+1});
-  }
-}
-
-function galDrawEnemy(e){
-  const cfg = GAL_TYPES[e.type];
-  gctx.save(); gctx.translate(e.x,e.y);
-  gctx.fillStyle=cfg.color; gctx.beginPath(); gctx.moveTo(0,-cfg.h/2); gctx.lineTo(cfg.w/2,0); gctx.lineTo(cfg.w/3,cfg.h/2); gctx.lineTo(-cfg.w/3,cfg.h/2); gctx.lineTo(-cfg.w/2,0); gctx.closePath(); gctx.fill();
-  gctx.fillStyle='#fff'; gctx.beginPath(); gctx.arc(-3,-1,1.6,0,Math.PI*2); gctx.arc(3,-1,1.6,0,Math.PI*2); gctx.fill();
-  gctx.restore();
-}
-
-function galDraw() {
-  gctx.fillStyle='#000'; gctx.fillRect(0,0,GW,GH);
-  gal.stars.forEach(s=>{ gctx.fillStyle=`rgba(212,168,67,${s.a})`; gctx.fillRect(s.x,s.y,s.s,s.s); });
-
-  if (gal.flashTimer>0) { gctx.fillStyle=`rgba(255,80,80,${gal.flashTimer/12*0.3})`; gctx.fillRect(0,0,GW,GH); }
-
-  gal.enemies.forEach(e=>{ if(e.alive) galDrawEnemy(e); });
-
-  const p = gal.player;
-  if (p.alive && (p.blink===0 || Math.floor(p.blink/4)%2===0)) {
-    gctx.save(); gctx.translate(p.x+p.w/2,p.y+p.h/2); gctx.fillStyle='#f0d078'; gctx.beginPath(); gctx.moveTo(0,-p.h/2); gctx.lineTo(p.w/2,p.h/2); gctx.lineTo(0,p.h/4); gctx.lineTo(-p.w/2,p.h/2); gctx.closePath(); gctx.fill(); gctx.restore();
-  }
-
-  gal.bullets.forEach(b=>{ gctx.fillStyle='#fff'; gctx.fillRect(b.x-1,b.y-6,2,8); });
-  gal.enemyBullets.forEach(b=>{ gctx.fillStyle='#ff6060'; gctx.fillRect(b.x-1,b.y,2,8); });
-
-  galParticles = galParticles.filter(pt=>{ pt.x+=pt.vx; pt.y+=pt.vy; pt.vy+=0.05; pt.life--; return pt.life>0; });
-  galParticles.forEach(pt=>{ gctx.globalAlpha=pt.life/pt.max; gctx.fillStyle=pt.color; gctx.fillRect(pt.x-pt.r/2,pt.y-pt.r/2,pt.r,pt.r); });
-  gctx.globalAlpha=1;
-
-  if (gal.phase==='ready') {
-    gctx.fillStyle='rgba(0,0,0,0.55)'; gctx.fillRect(0,0,GW,GH);
-    gctx.fillStyle='#f0d078'; gctx.font = 'bold 22px Orbitron'; gctx.textAlign='center'; gctx.fillText('GALAGA', GW/2, GH/2-8);
-    gctx.font='14px Space Grotesk'; gctx.fillStyle='#888'; gctx.fillText('Oleada '+gal.wave, GW/2, GH/2+18);
-  }
-  if (gal.phase==='gameover') {
-    gctx.fillStyle='rgba(0,0,0,0.75)'; gctx.fillRect(0,0,GW,GH);
-    gctx.fillStyle='#e04050'; gctx.font='bold 28px Orbitron'; gctx.textAlign='center'; gctx.fillText('GAME OVER', GW/2, GH/2-20);
-  }
-}
-
-function galLoop() {
-  if (activeGameLoop !== 'galaga') return;
-  const wasGameOver = gal.phase === 'gameover';
-  if (gal.phase==='playing' || gal.phase==='ready') galUpdate();
-  if (gal.phase==='waveup') { gal.waveTimer--; if (gal.waveTimer<=0) { gal.wave++; galInitWave(); } }
-  if (!gal.player.alive && gal.deathTimer>0 && gal.phase==='playing') {
-    gal.deathTimer--;
-    if (gal.deathTimer<=0) {
-      gal.lives--; if (gal.lives<=0) { gal.phase='gameover'; }
-      else { gal.player.alive=true; gal.player.blink=60; gal.player.x=GW/2-gal.player.w/2; gal.bullets=[]; gal.enemyBullets=[]; }
-    }
-  }
-  if (gal.phase === 'gameover' && !wasGameOver) { offerAlias('galaga', gal.score); }
-  galDraw();
-  requestAnimationFrame(galLoop);
-}
-
-const arkCanvas = document.getElementById('arkCanvas');
-const actx = arkCanvas.getContext('2d');
-const AW = 480, AH = 560;
-arkCanvas.width = AW; arkCanvas.height = AH;
-
-const BRICK_ROWS_BASE = 5;
-const BRICK_COLORS = ['#ff5050','#ffb852','#ffd23f','#40e0ff','#40d870','#ffb8ff','#ff60d0','#f0d078'];
-
-let ark = {
-  score:0, hi:0, level:1, lives:3,
-  phase:'menu', readyTimer:80,
-  paddle:null, ball:null, bricks:[], stars:[],
-  particles:[], keys:{}, flashTimer:0, deathTimer:0, levelUpTimer:0,
-  tick:0, _looping:false
-};
-
-function arkBuildBricks(level) {
-  const cols = 10;
-  const rows = Math.min(8, BRICK_ROWS_BASE + Math.floor((level-1)));
-  const marginX = 20, marginTop = 50, gap = 4;
-  const brickW = (AW - marginX*2 - gap*(cols-1)) / cols;
-  const brickH = 16;
-  const bricks = [];
-  for (let r=0;r<rows;r++) {
-    const color = BRICK_COLORS[r % BRICK_COLORS.length];
-    for (let c=0;c<cols;c++) {
-      bricks.push({
-        x: marginX + c*(brickW+gap),
-        y: marginTop + r*(brickH+gap),
-        w: brickW, h: brickH,
-        color,
-        hp: (level>=3 && r<2) ? 2 : 1,
-        alive: true,
-        pts: (rows-r)*10
-      });
-    }
-  }
-  return bricks;
-}
-
-function arkInitLevel() {
-  ark.bricks = arkBuildBricks(ark.level);
-  ark.paddle = { x:AW/2-45, y:AH-40, w:90, h:12, speed:6 };
-  ark.ball = { x:AW/2, y:AH-40-10, vx:0, vy:0, r:6, stuck:true, speed:5+Math.min(3,(ark.level-1)*0.4) };
-  ark.phase = 'ready';
-  ark.readyTimer = 70;
-  ark.deathTimer = 0; ark.levelUpTimer = 0; ark.flashTimer = 0;
-  ark.particles = [];
-  if (ark.stars.length===0) {
-    for (let i=0;i<60;i++) ark.stars.push({x:Math.random()*AW,y:Math.random()*AH,s:Math.random()*1.3+.3,a:Math.random()*.5+.2});
-  }
-}
-
-function arkReset() {
-  ark.score=0; ark.level=1; ark.lives=3;
-  arkInitLevel();
-}
-
-function startArkanoid() {
-  activeGameLoop = 'arkanoid';
-  arkReset();
-  showScreen('arkanoidScreen');
-  arkResize();
-  if (!ark._looping) { ark._looping = true; arkLoop(); }
-}
-
-function arkUpdateHUD() {
-  document.getElementById('arkScore').textContent = ark.score;
-  document.getElementById('arkLevel').textContent = ark.level;
-  document.getElementById('arkHi').textContent = ark.hi;
-  let l=''; for(let i=0;i<3;i++) l+=`<div class="life-icon ${i<ark.lives?'':'lost'}"></div>`;
-  document.getElementById('arkLives').innerHTML = l;
-}
-
-function arkLaunch() {
-  if (ark.phase!=='playing' || !ark.ball.stuck) return;
-  ark.ball.stuck = false;
-  const angle = -Math.PI/2 + (Math.random()*0.6-0.3);
-  ark.ball.vx = Math.cos(angle)*ark.ball.speed;
-  ark.ball.vy = Math.sin(angle)*ark.ball.speed;
-}
-
-function arkSpawnBoom(x,y,color,n=8) {
-  for (let i=0;i<n;i++) {
-    const a=Math.random()*Math.PI*2, sp=Math.random()*2+.5;
-    ark.particles.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,life:20+Math.random()*10,max:30,color,r:Math.random()*2+1});
-  }
-}
-
-function arkUpdate() {
-  ark.tick++;
-  ark.stars.forEach(s=>{ s.y+=s.s*0.3; if(s.y>AH){s.y=0;s.x=Math.random()*AW;} });
-  if (ark.flashTimer>0) ark.flashTimer--;
-
-  if (ark.phase==='ready') { ark.readyTimer--; if(ark.readyTimer<=0) ark.phase='playing'; return; }
-  if (ark.phase!=='playing') return;
-
-  const p = ark.paddle;
-  let vx=0;
-  if (ark.keys.left) vx=-p.speed;
-  if (ark.keys.right) vx=p.speed;
-  p.x += vx;
-  if (p.x<8) p.x=8;
-  if (p.x+p.w>AW-8) p.x=AW-8-p.w;
-
-  const b = ark.ball;
-  if (b.stuck) {
-    b.x = p.x + p.w/2; b.y = p.y - b.r - 2;
-  } else {
-    b.x += b.vx; b.y += b.vy;
-    if (b.x-b.r<8) { b.x=8+b.r; b.vx=Math.abs(b.vx); }
-    if (b.x+b.r>AW-8) { b.x=AW-8-b.r; b.vx=-Math.abs(b.vx); }
-    if (b.y-b.r<8) { b.y=8+b.r; b.vy=Math.abs(b.vy); }
-
-    if (b.vy>0 && b.y+b.r>=p.y && b.y+b.r<=p.y+p.h+8 && b.x>=p.x-b.r && b.x<=p.x+p.w+b.r) {
-      const hitPos = (b.x-(p.x+p.w/2))/(p.w/2);
-      const angle = hitPos * (Math.PI/3);
-      const speed = Math.hypot(b.vx,b.vy);
-      b.vx = Math.sin(angle)*speed;
-      b.vy = -Math.abs(Math.cos(angle)*speed);
-      b.y = p.y - b.r - 1;
-    }
-
-    for (const brick of ark.bricks) {
-      if (!brick.alive) continue;
-      if (b.x+b.r>brick.x && b.x-b.r<brick.x+brick.w && b.y+b.r>brick.y && b.y-b.r<brick.y+brick.h) {
-        brick.hp--;
-        if (brick.hp<=0) {
-          brick.alive = false;
-          ark.score += brick.pts;
-          if (ark.score>ark.hi) ark.hi = ark.score;
-          arkSpawnBoom(brick.x+brick.w/2, brick.y+brick.h/2, brick.color);
+  const $ = id => document.getElementById(id);
+  const fmt = (n, d=2) => n.toLocaleString('es-ES', {minimumFractionDigits:d, maximumFractionDigits:d});
+  const SQRT3 = Math.sqrt(3);
+
+  // --- CONTROLADOR DE PESTAÑAS (TABS) INTERNAS DE MÓDULOS ---
+  function setupModuleTabs(groupDataAttr) {
+    const selectors = document.querySelectorAll(`.selector[data-group="${groupDataAttr}"] button`);
+    selectors.forEach(btn => {
+      btn.addEventListener('click', () => {
+        selectors.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        // Ocultar hermanos directos lógicos
+        const targetId = btn.getAttribute('data-target');
+        const targetElem = $(targetId);
+        if(targetElem) {
+          let sibling = targetElem.parentElement.querySelector('.module.active');
+          if(sibling) sibling.classList.remove('active');
+          targetElem.classList.add('active');
         }
-        const overlapLeft = (b.x+b.r)-brick.x;
-        const overlapRight = (brick.x+brick.w)-(b.x-b.r);
-        const overlapTop = (b.y+b.r)-brick.y;
-        const overlapBottom = (brick.y+brick.h)-(b.y-b.r);
-        const minOverlap = Math.min(overlapLeft,overlapRight,overlapTop,overlapBottom);
-        if (minOverlap===overlapTop || minOverlap===overlapBottom) b.vy=-b.vy;
-        else b.vx=-b.vx;
+        // Forzar repintados si aplica
+        if(targetId === 'tray-corte') resizeCanvas();
+      });
+    });
+  }
+
+  // --- COMPONENTE SEGMENTADO (SEG) ---
+  function setupSeg(id, callback){
+    const container = $(id);
+    const btns = container.querySelectorAll('button');
+    btns.forEach(b => {
+      b.addEventListener('click', () => {
+        btns.forEach(x => x.classList.remove('active'));
+        b.classList.add('active');
+        if(callback) callback(b.getAttribute('data-val'));
+      });
+    });
+    return () => container.querySelector('button.active').getAttribute('data-val');
+  }
+
+  setupModuleTabs('mt');
+  setupModuleTabs('bandejas-sel');
+  setupModuleTabs('bobinados-sel');
+
+  // ==========================================
+  // 01. MEDIA Y ALTA TENSIÓN
+  // ==========================================
+  const getIcSistema = setupSeg('ic-sistema', calcCorriente);
+  ['ic-potencia', 'ic-tension', 'ic-cosphi'].forEach(id => $(id).addEventListener('input', calcCorriente));
+
+  function calcCorriente(){
+    const sis = getIcSistema();
+    const S = parseFloat($('ic-potencia').value);
+    const U = parseFloat($('ic-tension').value);
+    const cosphi = parseFloat($('ic-cosphi').value);
+
+    if(!S || !U || !cosphi) return;
+
+    let I = 0;
+    if(sis === '3') {
+      I = S * 1000 / (SQRT3 * U);
+    } else {
+      I = S * 1000 / U;
+    }
+    const P = S * cosphi;
+
+    $('ic-out-i').innerHTML = isFinite(I) ? fmt(I,2) + ' <span class="rb-unit">A</span>' : '—';
+    $('ic-out-p').innerHTML = isFinite(P) ? fmt(P,1) + ' <span class="rb-unit">kW</span>' : '—';
+  }
+  calcCorriente();
+
+  // Caída de tensión
+  ['cd-i','cd-l','cd-r','cd-x','cd-u','cd-cosphi'].forEach(id => $(id).addEventListener('input', calcCaida));
+  function calcCaida(){
+    const I = parseFloat($('cd-i').value);
+    const L = parseFloat($('cd-l').value);
+    const R = parseFloat($('cd-r').value);
+    const X = parseFloat($('cd-x').value);
+    const U = parseFloat($('cd-u').value);
+    const cosphi = parseFloat($('cd-cosphi').value);
+
+    if(!I||!L||!R||!X||!U||!cosphi) return;
+
+    const senphi = Math.sin(Math.acos(cosphi));
+    const deltaU = SQRT3 * I * L * (R * cosphi + X * senphi);
+    const pct = (deltaU / U) * 100;
+
+    $('cd-out-v').innerHTML = isFinite(deltaU) ? fmt(deltaU,1) + ' <span class="rb-unit">V</span>' : '—';
+    $('cd-out-pct').innerHTML = isFinite(pct) ? fmt(pct,2) + ' <span class="rb-unit">%</span>' : '—';
+  }
+  calcCaida();
+
+  // Cortocircuito
+  ['icc-sn','icc-un','icc-zcc'].forEach(id => $(id).addEventListener('input', calcIcc));
+  function calcIcc(){
+    const Sn = parseFloat($('icc-sn').value);
+    const Un = parseFloat($('icc-un').value);
+    const Zcc = parseFloat($('icc-zcc').value);
+
+    if(!Sn||!Un||!Zcc) return;
+
+    const Icc = Sn / (SQRT3 * Un * (Zcc / 100));
+    const Scc = Sn / (Zcc / 100) / 1000; // MVA
+
+    $('icc-out').innerHTML = isFinite(Icc) ? fmt(Icc,2) + ' <span class="rb-unit">kA</span>' : '—';
+    $('icc-out-s').innerHTML = isFinite(Scc) ? fmt(Scc,1) + ' <span class="rb-unit">MVA</span>' : '—';
+  }
+  calcIcc();
+
+
+  // ==========================================
+  // 02. CÁLCULO LUMÍNICO
+  // ==========================================
+  ['lu-a','lu-b','lu-h','lu-em','lu-eta','lu-fm','lu-flujo','lu-nlamp'].forEach(id => $(id).addEventListener('input', calcLumenes));
+  function calcLumenes(){
+    const a = parseFloat($('lu-a').value);
+    const b = parseFloat($('lu-b').value);
+    const h = parseFloat($('lu-h').value);
+    const Em = parseFloat($('lu-em').value);
+    const eta = parseFloat($('lu-eta').value);
+    const fm = parseFloat($('lu-fm').value);
+    const flujo = parseFloat($('lu-flujo').value);
+    const nlamp = parseFloat($('lu-nlamp').value);
+
+    if(!a||!b||!h||!Em||!eta||!fm||!flujo||!nlamp) return;
+
+    const A = a * b;
+    const K = (a * b) / (h * (a + b));
+    const flujoTotal = (Em * A) / (eta * fm);
+    const nLuminarias = flujoTotal / (flujo * nlamp);
+    const nReal = Math.ceil(nLuminarias);
+    const eReal = (nReal * flujo * nlamp * eta * fm) / A;
+
+    $('lu-out-k').innerHTML = isFinite(K) ? fmt(K,2) : '—';
+    $('lu-out-flujo').innerHTML = isFinite(flujoTotal) ? fmt(Math.round(flujoTotal),0) + ' <span class="rb-unit">lm</span>' : '—';
+    $('lu-out-n').innerHTML = isFinite(nLuminarias) ? Math.ceil(nLuminarias) + ' <span class="rb-unit">uds</span> <style style="font-size:0.68rem;color:var(--text-faint)">('+fmt(nLuminarias,1)+')</style>' : '—';
+    $('lu-out-ereal').innerHTML = isFinite(eReal) ? fmt(Math.round(eReal),0) + ' <span class="rb-unit">lux</span>' : '—';
+  }
+  calcLumenes();
+
+
+  // ==========================================
+  // 03. BANDEJAS PORTACABLES
+  // ==========================================
+  let trayData = [
+    { diam: 24.5, cant: 6 },
+    { diam: 12.0, cant: 12 }
+  ];
+
+  function renderTrayRows(){
+    const container = $('tray-rows');
+    container.innerHTML = '';
+    trayData.forEach((row, idx) => {
+      const div = document.createElement('div');
+      div.className = 'tray-row';
+      div.innerHTML = `
+        <input type="number" value="${row.diam}" step="0.1" placeholder="Ø mm" data-idx="${idx}" class="c-diam">
+        <input type="number" value="${row.cant}" step="1" placeholder="Cant" data-idx="${idx}" class="c-cant">
+        <button class="rm" data-idx="${idx}" type="button">×</button>
+      `;
+      container.appendChild(div);
+    });
+
+    // Eventos
+    container.querySelectorAll('.c-diam').forEach(i => i.addEventListener('input', e => {
+      trayData[e.target.dataset.idx].diam = parseFloat(e.target.value) || 0;
+      calcBandejas();
+    }));
+    container.querySelectorAll('.c-cant').forEach(i => i.addEventListener('input', e => {
+      trayData[e.target.dataset.idx].cant = parseInt(e.target.value) || 0;
+      calcBandejas();
+    }));
+    container.querySelectorAll('.rm').forEach(b => b.addEventListener('click', e => {
+      trayData.splice(e.target.dataset.idx, 1);
+      renderTrayRows();
+      calcBandejas();
+    }));
+  }
+
+  $('tray-add').addEventListener('click', () => {
+    trayData.push({ diam: 15, cant: 4 });
+    renderTrayRows();
+    calcBandejas();
+  });
+
+  ['tray-height', 'tray-fillmax'].forEach(id => $(id).addEventListener('input', calcBandejas));
+
+  function calcBandejas(){
+    let areaTotal = 0;
+    trayData.forEach(r => {
+      const s = (Math.PI / 4) * Math.pow(r.diam, 2);
+      areaTotal += s * r.cant;
+    });
+
+    const h = parseFloat($('tray-height').value);
+    const fillMax = parseFloat($('tray-fillmax').value) / 100;
+
+    // Ancho teórico mínimo
+    const wTeorico = areaTotal / (h * fillMax);
+
+    // Buscar ancho comercial standard
+    const stdWidths = [100, 150, 200, 300, 400, 500, 600, 800, 1000];
+    let wElegido = stdWidths[stdWidths.length - 1];
+    for(let i=0; i<stdWidths.length; i++){
+      if(stdWidths[i] >= wTeorico){
+        wElegido = stdWidths[i];
         break;
       }
     }
 
-    if (b.y-b.r>AH) {
-      ark.deathTimer = 1;
-    }
-  }
+    if(wTeorico > 1000) wElegido = Math.ceil(wTeorico/100)*100; // Fuera de rango standard
 
-  if (ark.bricks.every(br=>!br.alive)) {
-    ark.phase='levelup'; ark.levelUpTimer=100;
-  }
+    const fillPctReal = (areaTotal / (wElegido * h)) * 100;
 
-  ark.particles = ark.particles.filter(pt=>{ pt.x+=pt.vx; pt.y+=pt.vy; pt.vy+=0.05; pt.life--; return pt.life>0; });
-
-  arkUpdateHUD();
-}
-
-function arkDrawBrick(br) {
-  actx.fillStyle = br.color;
-  actx.fillRect(br.x,br.y,br.w,br.h);
-  if (br.hp>1) {
-    actx.strokeStyle='rgba(255,255,255,.6)'; actx.lineWidth=1;
-    actx.strokeRect(br.x+1,br.y+1,br.w-2,br.h-2);
-  }
-}
-
-function arkDraw() {
-  actx.fillStyle='#000'; actx.fillRect(0,0,AW,AH);
-  ark.stars.forEach(s=>{ actx.fillStyle=`rgba(212,168,67,${s.a})`; actx.fillRect(s.x,s.y,s.s,s.s); });
-
-  if (ark.flashTimer>0) { actx.fillStyle=`rgba(255,80,80,${ark.flashTimer/12*0.3})`; actx.fillRect(0,0,AW,AH); }
-
-  ark.bricks.forEach(br=>{ if(br.alive) arkDrawBrick(br); });
-
-  const p = ark.paddle;
-  actx.fillStyle='#f0d078'; actx.fillRect(p.x,p.y,p.w,p.h);
-
-  const b = ark.ball;
-  actx.fillStyle='#fff';
-  actx.beginPath(); actx.arc(b.x,b.y,b.r,0,Math.PI*2); actx.fill();
-
-  ark.particles.forEach(pt=>{ actx.globalAlpha=pt.life/pt.max; actx.fillStyle=pt.color; actx.fillRect(pt.x-pt.r/2,pt.y-pt.r/2,pt.r,pt.r); });
-  actx.globalAlpha=1;
-
-  if (ark.phase==='ready') {
-    actx.fillStyle='rgba(0,0,0,0.55)'; actx.fillRect(0,0,AW,AH);
-    actx.fillStyle='#f0d078'; actx.font='bold 22px Orbitron'; actx.textAlign='center';
-    actx.fillText('ARKANOID', AW/2, AH/2-8);
-    actx.font='14px Space Grotesk'; actx.fillStyle='#888';
-    actx.fillText('Nivel '+ark.level, AW/2, AH/2+18);
-  }
-  if (ark.phase==='paused') {
-    actx.fillStyle='rgba(0,0,0,0.65)'; actx.fillRect(0,0,AW,AH);
-    actx.fillStyle='#f0d078'; actx.font='bold 28px Orbitron'; actx.textAlign='center';
-    actx.fillText('PAUSA', AW/2, AH/2);
-  }
-  if (ark.phase==='levelup') {
-    actx.fillStyle=`rgba(0,0,0,${Math.min(0.7,(100-ark.levelUpTimer)/100*0.7)})`; actx.fillRect(0,0,AW,AH);
-    actx.fillStyle='#40d870'; actx.font='bold 20px Orbitron'; actx.textAlign='center';
-    actx.fillText('NIVEL '+ark.level+' SUPERADO', AW/2, AH/2);
-  }
-  if (ark.phase==='gameover') {
-    actx.fillStyle='rgba(0,0,0,0.75)'; actx.fillRect(0,0,AW,AH);
-    actx.fillStyle='#e04050'; actx.font='bold 28px Orbitron'; actx.textAlign='center';
-    actx.fillText('GAME OVER', AW/2, AH/2-20);
-    actx.fillStyle='#f0d078'; actx.font='16px Orbitron';
-    actx.fillText('PUNTOS: '+ark.score, AW/2, AH/2+10);
-  }
-}
-
-function arkLoop() {
-  if (activeGameLoop !== 'arkanoid') return;
-  const wasGameOver = ark.phase === 'gameover';
-
-  if (ark.phase==='playing' || ark.phase==='ready') arkUpdate();
-
-  if (ark.deathTimer===1 && ark.phase==='playing') {
-    ark.lives--;
-    ark.flashTimer=12;
-    arkSpawnBoom(ark.ball.x, AH-20, '#f0d078', 14);
-    if (ark.lives<=0) {
-      ark.phase='gameover';
+    $('tray-out-area').innerHTML = fmt(areaTotal, 1) + ' <span class="rb-unit">mm²</span>';
+    $('tray-out-width').innerHTML = isFinite(wTeorico) ? fmt(wTeorico, 1) + ' <span class="rb-unit">mm</span>' : '—';
+    $('tray-out-std').innerHTML = areaTotal>0 ? wElegido + ' <span class="rb-unit">mm</span>' : '—';
+    $('tray-fillpct').innerHTML = areaTotal>0 ? fmt(fillPctReal, 1) + '%' : '0%';
+    
+    const fBar = $('tray-fillbar');
+    fBar.style.width = areaTotal>0 ? Math.min(fillPctReal, 100) + '%' : '0%';
+    if(fillPctReal > parseFloat($('tray-fillmax').value)){
+      fBar.classList.add('warn');
     } else {
-      ark.ball.stuck=true; ark.ball.vx=0; ark.ball.vy=0;
-      ark.paddle.x = AW/2 - ark.paddle.w/2;
-    }
-    ark.deathTimer=0;
-  }
-
-  if (ark.phase==='levelup') {
-    ark.levelUpTimer--;
-    if (ark.levelUpTimer<=0) {
-      ark.level++;
-      arkInitLevel();
+      fBar.classList.remove('warn');
     }
   }
 
-  if (ark.phase === 'gameover' && !wasGameOver) { offerAlias('arkanoid', ark.score); }
+  // Inicializar modulo bandejas
+  renderTrayRows();
+  calcBandejas();
 
-  arkDraw();
-  requestAnimationFrame(arkLoop);
-}
+  // --- TRASLACIÓN CONSTRUCTIVA CORTE DE BANDEJA ---
+  const getTCDireccion = setupSeg('tc-direccion', () => { calcCorteBandeja(); drawTray3D(); });
+  ['tc-h', 'tc-alpha', 'tc-cortes'].forEach(id => $(id).addEventListener('input', () => { calcCorteBandeja(); drawTray3D(); }));
 
-document.addEventListener('keydown', e => {
-  if (activeGameLoop === 'pacman') {
-    if (gameState==='playing'||gameState==='ready') {
-      switch(e.key) {
-        case 'ArrowUp': case 'w': case 'W': pacman.ndx=0;pacman.ndy=-1;e.preventDefault();break;
-        case 'ArrowDown': case 's': case 'S': pacman.ndx=0;pacman.ndy=1;e.preventDefault();break;
-        case 'ArrowLeft': case 'a': case 'A': pacman.ndx=-1;pacman.ndy=0;e.preventDefault();break;
-        case 'ArrowRight': case 'd': case 'D': pacman.ndx=1;pacman.ndy=0;e.preventDefault();break;
-        case 'p': case 'P': if(gameState==='playing')gameState='paused'; else if(gameState==='paused')gameState='playing';break;
+  let globalL = 0, globalH = 100, globalAlpha = 45, globalCortes = 2, globalDir = 'dentro';
+
+  function calcCorteBandeja(){
+    globalH = parseFloat($('tc-h').value) || 0;
+    globalAlpha = parseFloat($('tc-alpha').value) || 0;
+    globalCortes = parseInt($('tc-cortes').value);
+    globalDir = getTCDireccion();
+
+    // Fórmula muesca: L total = 2 * H * tan(α / 2)
+    const alphaRad = (globalAlpha * Math.PI) / 180;
+    globalL = 2 * globalH * Math.tan(alphaRad / 2);
+
+    const l_i = globalL / globalCortes;
+    const alpha_i = globalAlpha / globalCortes;
+
+    $('tc-out-l').innerHTML = fmt(globalL, 1) + ' <span class="rb-unit">mm</span>';
+    $('tc-out-li').innerHTML = fmt(l_i, 1) + ' <span class="rb-unit">mm</span>';
+    $('tc-out-alphai').innerHTML = fmt(alpha_i, 1) + ' <span class="rb-unit">°</span>';
+  }
+  calcCorteBandeja();
+
+  // Canvas RENDER 3D Wireframe simplificado (Plegado constructivo de chapa)
+  const canvas = $('tray-canvas');
+  const ctx = canvas.getContext('2d');
+
+  function resizeCanvas(){
+    canvas.width = canvas.parentElement.clientWidth;
+    canvas.height = canvas.parentElement.clientHeight;
+    drawTray3D();
+  }
+  window.addEventListener('resize', resizeCanvas);
+  setTimeout(resizeCanvas, 100);
+
+  function drawTray3D(){
+    if(!ctx || canvas.width===0) return;
+    const cw = canvas.width, ch = canvas.height;
+    ctx.clearRect(0,0,cw,ch);
+
+    // Paleta fija (el contexto 2D de canvas no interpreta variables CSS var())
+    const COL = {
+      amber:'#F2A93B', amberDim:'#8A6423', teal:'#3FD0C9', tealDim:'#1F6E68',
+      violet:'#9C8CF2', dim:'#8B98A8', faint:'#5A6675', hinge:'#2C3A4A', cutFill:'rgba(232,92,74,0.16)'
+    };
+
+    // ---- Parámetros geométricos a partir del estado global (no se toca calcCorteBandeja) ----
+    const n = Math.max(1, parseInt(globalCortes)||1);
+    const H = Math.max(20, Math.min(globalH * 0.42, 62));
+    const dirSign = globalDir === 'dentro' ? 1 : -1;
+    const alphaTotalRad = (globalAlpha||0) * Math.PI/180;
+    const alphaIRad = alphaTotalRad / n;
+    const liEach = 2*H*Math.tan(alphaIRad/2);
+    const extLen = 92, segLen = 44;
+
+    const dirs = [0];
+    for(let k=1;k<=n;k++) dirs.push(dirSign*alphaIRad*k);
+
+    // Vértices de la charnela (base/suelo intacto, sin cortes): P0, F1..Fn, Pend
+    const F = [{x:-extLen, z:0}];
+    let cur = {x:0, z:0};
+    F.push(cur);
+    for(let k=1;k<n;k++){
+      cur = {x:cur.x + segLen*Math.cos(dirs[k]), z:cur.z + segLen*Math.sin(dirs[k])};
+      F.push(cur);
+    }
+    const Pend = {x:cur.x + extLen*Math.cos(dirs[n]), z:cur.z + extLen*Math.sin(dirs[n])};
+    F.push(Pend);
+
+    // Puntos del borde superior a cada lado de cada muesca en V
+    const notches = [];
+    for(let k=1;k<=n;k++){
+      const Fk = F[k];
+      const dIn = dirs[k-1], dOut = dirs[k];
+      const half = liEach/2;
+      notches.push({
+        apex: Fk,
+        inPt:  {x:Fk.x - half*Math.cos(dIn),  z:Fk.z - half*Math.sin(dIn)},
+        outPt: {x:Fk.x + half*Math.cos(dOut), z:Fk.z + half*Math.sin(dOut)}
+      });
+    }
+
+    // ---- Proyección isométrica con autoencuadre (evita recortes al cambiar parámetros) ----
+    function raw(x,y,z){
+      const a = -0.5;
+      const rx = x*Math.cos(a) - z*Math.sin(a);
+      const rz = x*Math.sin(a) + z*Math.cos(a);
+      return {x:rx, y:-y + rz*0.5};
+    }
+    const sample = [];
+    F.forEach(p=>{ sample.push(raw(p.x,0,p.z)); sample.push(raw(p.x,H,p.z)); });
+    const xs = sample.map(p=>p.x), ys = sample.map(p=>p.y);
+    const bx0=Math.min(...xs), bx1=Math.max(...xs), by0=Math.min(...ys), by1=Math.max(...ys);
+    const bw = Math.max(1,bx1-bx0), bh = Math.max(1,by1-by0);
+    const mX = 66, mY = 46;
+    const scale = Math.min((cw-2*mX)/bw, (ch-2*mY)/bh, 2.3);
+    const bcx = (bx0+bx1)/2, bcy = (by0+by1)/2;
+    const cx = cw/2, cy = ch/2 + 4;
+    function P(x,y,z){
+      const r = raw(x,y,z);
+      return {x: cx + (r.x-bcx)*scale, y: cy + (r.y-bcy)*scale};
+    }
+
+    function seg(p1,p2,color,width,dash){
+      ctx.beginPath(); ctx.moveTo(p1.x,p1.y); ctx.lineTo(p2.x,p2.y);
+      ctx.strokeStyle = color; ctx.lineWidth = width;
+      if(dash) ctx.setLineDash(dash); ctx.stroke(); if(dash) ctx.setLineDash([]);
+    }
+    function dimTicks(a,b,vertical){
+      const t=4;
+      [a,b].forEach(p=>{
+        ctx.beginPath();
+        if(vertical){ ctx.moveTo(p.x-t,p.y); ctx.lineTo(p.x+t,p.y); }
+        else { ctx.moveTo(p.x,p.y-t); ctx.lineTo(p.x,p.y+t); }
+        ctx.strokeStyle = COL.violet; ctx.lineWidth = 1; ctx.stroke();
+      });
+    }
+
+    // ================= DIBUJO =================
+
+    // Charnela / base intacta (línea de pliegue continua, sin cortes)
+    ctx.beginPath();
+    F.forEach((p,i)=>{ const s=P(p.x,0,p.z); i===0?ctx.moveTo(s.x,s.y):ctx.lineTo(s.x,s.y); });
+    ctx.strokeStyle = COL.hinge; ctx.lineWidth = 1.4; ctx.setLineDash([2,3]); ctx.stroke(); ctx.setLineDash([]);
+
+    // Muescas: relleno del material retirado (el corte) + contorno resaltado
+    notches.forEach(nt=>{
+      const sApex = P(nt.apex.x, H*0.12, nt.apex.z); // pequeño hilo de material junto a la charnela
+      const sIn = P(nt.inPt.x, H, nt.inPt.z);
+      const sOut = P(nt.outPt.x, H, nt.outPt.z);
+      ctx.beginPath();
+      ctx.moveTo(sIn.x,sIn.y); ctx.lineTo(sApex.x,sApex.y); ctx.lineTo(sOut.x,sOut.y); ctx.closePath();
+      ctx.fillStyle = COL.cutFill; ctx.fill();
+      ctx.strokeStyle = COL.amber; ctx.lineWidth = 2.2; ctx.lineJoin='round'; ctx.stroke();
+      seg(sApex, P(nt.apex.x,0,nt.apex.z), COL.amberDim, 1, [2,2]);
+    });
+
+    // Borde superior del ala: tramos rectos con hueco en cada muesca
+    const runs = [];
+    let prevTop = {x:F[0].x, z:F[0].z};
+    notches.forEach(nt => { runs.push([prevTop, nt.inPt]); prevTop = nt.outPt; });
+    runs.push([prevTop, {x:F[n+1].x, z:F[n+1].z}]);
+    runs.forEach(r=>{
+      const s0 = P(r[0].x,H,r[0].z), s1 = P(r[1].x,H,r[1].z);
+      seg(s0,s1,COL.teal,2.4);
+    });
+
+    // Caras laterales en los extremos del tramo
+    [F[0], F[n+1]].forEach(p=>{
+      seg(P(p.x,0,p.z), P(p.x,H,p.z), COL.tealDim, 1.4);
+    });
+
+    // ================= COTAS =================
+    ctx.textBaseline = 'middle';
+
+    // Cota H — altura de ala, junto al primer tramo
+    (function(){
+      const bx = F[0].x + 20;
+      const sB = P(bx,0,0), sT = P(bx,H,0);
+      seg(sB,sT,COL.violet,1);
+      dimTicks(sB,sT,false);
+      ctx.fillStyle = COL.violet; ctx.textAlign = 'left'; ctx.font = '11px "IBM Plex Mono", monospace';
+      ctx.fillText('H='+(globalH||0).toFixed(0)+'mm', sT.x+7, (sB.y+sT.y)/2);
+    })();
+
+    // Cota L — apertura total acumulada, sobre el borde superior
+    if(notches.length){
+      const first = notches[0].inPt, last = notches[notches.length-1].outPt;
+      const s1 = P(first.x, H, first.z), s2 = P(last.x, H, last.z);
+      const s1o = {x:s1.x, y:s1.y-14}, s2o = {x:s2.x, y:s2.y-14};
+      seg(s1,s1o,COL.violet,0.8,[1,2]); seg(s2,s2o,COL.violet,0.8,[1,2]);
+      seg(s1o,s2o,COL.violet,1); dimTicks(s1o,s2o,true);
+      ctx.fillStyle = COL.violet; ctx.textAlign = 'center'; ctx.font = '11px "IBM Plex Mono", monospace';
+      ctx.fillText('L='+(globalL||0).toFixed(1)+'mm', (s1o.x+s2o.x)/2, Math.min(s1o.y,s2o.y)-9);
+    }
+
+    // Arco de ángulo α total, en el primer pliegue
+    (function(){
+      const center = F[1];
+      const r = 26, steps = 20;
+      ctx.beginPath();
+      for(let i=0;i<=steps;i++){
+        const t = dirs[0] + (dirs[n]-dirs[0])*(i/steps);
+        const sp = P(center.x + r*Math.cos(t), H*0.5, center.z + r*Math.sin(t));
+        i===0?ctx.moveTo(sp.x,sp.y):ctx.lineTo(sp.x,sp.y);
       }
-    } else if (gameState==='paused' && (e.key==='p'||e.key==='P')) { gameState='playing'; }
-  }
-  
-  if (activeGameLoop === 'invaders') {
-    if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') { invState.keys.left = true; e.preventDefault(); }
-    if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') { invState.keys.right = true; e.preventDefault(); }
-    if (e.key === ' ') { invFire(); e.preventDefault(); }
-    if (e.key === 'p' || e.key === 'P') { invState.phase = (invState.phase === 'playing') ? 'paused' : 'playing'; }
-    if (e.key === 'Enter' && invState.phase === 'gameover') { invReset(); invState.phase = 'ready'; invState.readyTimer = 80; }
+      ctx.strokeStyle = COL.amber; ctx.lineWidth = 1.4; ctx.stroke();
+      const mid = dirs[0] + (dirs[n]-dirs[0])/2;
+      const lp = P(center.x + r*1.6*Math.cos(mid), H*0.5, center.z + r*1.6*Math.sin(mid));
+      ctx.fillStyle = COL.amber; ctx.textAlign = 'center'; ctx.font = '11px "IBM Plex Mono", monospace';
+      ctx.fillText('α='+(globalAlpha||0).toFixed(1)+'°', lp.x, lp.y);
+    })();
+
+    // Etiquetas por muesca (Li) cuando hay más de un corte
+    if(n>1){
+      ctx.font = '9px "IBM Plex Mono", monospace'; ctx.fillStyle = COL.dim; ctx.textAlign='center';
+      notches.forEach((nt,idx)=>{
+        const s = P(nt.apex.x, H+6, nt.apex.z);
+        ctx.fillText('L'+(idx+1), s.x, s.y+10);
+      });
+    }
+
+    // Badge informativo
+    ctx.fillStyle = COL.faint; ctx.font = '9px "IBM Plex Mono", monospace'; ctx.textAlign = 'left';
+    ctx.fillText('GIRO ' + (globalDir==='dentro' ? 'HACIA DENTRO' : 'HACIA FUERA') + ' · ' + n + (n===1?' CORTE':' CORTES'), 8, 13);
+
+    // Leyenda
+    function swatch(x,y,color,label){
+      ctx.fillStyle = color; ctx.fillRect(x,y-6,8,8);
+      ctx.fillStyle = COL.dim; ctx.font = '9px "IBM Plex Mono", monospace'; ctx.textAlign = 'left';
+      ctx.fillText(label, x+12, y-1);
+    }
+    const ly = ch - 10;
+    swatch(8, ly, COL.amber, 'Corte');
+    swatch(76, ly, COL.teal, 'Pliegue');
+    swatch(154, ly, COL.violet, 'Cota');
   }
 
-  if (activeGameLoop === 'galaga') {
-    if (e.key==='ArrowLeft'||e.key==='a'||e.key==='A') { gal.keys.left=true; e.preventDefault(); }
-    if (e.key==='ArrowRight'||e.key==='d'||e.key==='D') { gal.keys.right=true; e.preventDefault(); }
-    if (e.key===' ') { galFire(); e.preventDefault(); }
-    if (e.key==='p'||e.key==='P') { gal.phase = (gal.phase === 'playing') ? 'paused' : 'playing'; }
-    if (e.key==='Enter' && gal.phase==='gameover') { galReset(); }
-  }
 
-  if (activeGameLoop === 'arkanoid') {
-    if (e.key==='ArrowLeft'||e.key==='a'||e.key==='A') { ark.keys.left=true; e.preventDefault(); }
-    if (e.key==='ArrowRight'||e.key==='d'||e.key==='D') { ark.keys.right=true; e.preventDefault(); }
-    if (e.key===' ') { arkLaunch(); e.preventDefault(); }
-    if (e.key==='p'||e.key==='P') { ark.phase = (ark.phase === 'playing') ? 'paused' : 'playing'; }
-    if (e.key==='Enter' && ark.phase==='gameover') { arkReset(); }
-  }
-});
-
-document.addEventListener('keyup', e => {
-  if (activeGameLoop === 'invaders') {
-    if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') invState.keys.left = false;
-    if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') invState.keys.right = false;
-  }
-  if (activeGameLoop === 'galaga') {
-    if (e.key==='ArrowLeft'||e.key==='a'||e.key==='A') gal.keys.left=false;
-    if (e.key==='ArrowRight'||e.key==='d'||e.key==='D') gal.keys.right=false;
-  }
-  if (activeGameLoop === 'arkanoid') {
-    if (e.key==='ArrowLeft'||e.key==='a'||e.key==='A') ark.keys.left=false;
-    if (e.key==='ArrowRight'||e.key==='d'||e.key==='D') ark.keys.right=false;
-  }
-});
-
-function resizeGameCanvas() {
-  const maxW=window.innerWidth-20, maxH=window.innerHeight-120;
-  const scalePacman=Math.min(maxW/CW, maxH/CH, 1);
-  canvas.style.width=(CW*scalePacman)+'px'; canvas.style.height=(CH*scalePacman)+'px';
-}
-function invResize() {
-  const maxW = window.innerWidth - 20, maxH = window.innerHeight - 140;
-  const scale = Math.min(maxW / IW, maxH / IH, 1);
-  invCanvas.style.width = (IW * scale) + 'px'; invCanvas.style.height = (IH * scale) + 'px';
-}
-function galResize() {
-  const maxW=window.innerWidth-20, maxH=window.innerHeight-140;
-  const scale=Math.min(maxW/GW, maxH/GH, 1);
-  galCanvas.style.width=(GW*scale)+'px'; galCanvas.style.height=(GH*scale)+'px';
-}
-function arkResize() {
-  const maxW=window.innerWidth-20, maxH=window.innerHeight-140;
-  const scale=Math.min(maxW/AW, maxH/AH, 1);
-  arkCanvas.style.width=(AW*scale)+'px'; arkCanvas.style.height=(AH*scale)+'px';
-}
-window.addEventListener('resize', () => { resizeGameCanvas(); invResize(); galResize(); arkResize(); });
-resizeGameCanvas();
-
-function getLB(game) {
-  try { return JSON.parse(localStorage.getItem('lb_'+game) || '[]'); }
-  catch(e) { return []; }
-}
-function saveLB(game, list) {
-  localStorage.setItem('lb_'+game, JSON.stringify(list));
-}
-function qualifiesLB(game, score) {
-  if (score <= 0) return false;
-  const lb = getLB(game);
-  if (lb.length < 10) return true;
-  return score > lb[lb.length-1].score;
-}
-function offerAlias(game, score) {
-  if (!qualifiesLB(game, score)) return;
-  lbPendingGame = game; lbPendingScore = score;
-  document.getElementById('aliasScoreText').textContent = 'Puntuacion: ' + score;
-  document.getElementById('aliasInput').value = '';
-  document.getElementById('aliasModal').classList.add('active');
-  setTimeout(()=>document.getElementById('aliasInput').focus(), 50);
-}
-function closeAliasModal() {
-  document.getElementById('aliasModal').classList.remove('active');
-  lbPendingGame = null;
-}
-function submitAlias() {
-  const input = document.getElementById('aliasInput');
-  let name = input.value.trim();
-  if (!name) { input.focus(); return; }
-  name = name.substring(0,12);
-  if (!lbPendingGame) { closeAliasModal(); return; }
-  const lb = getLB(lbPendingGame);
-  lb.push({ name, score: lbPendingScore, date: new Date().toLocaleDateString('es-ES') });
-  lb.sort((a,b)=>b.score-a.score);
-  saveLB(lbPendingGame, lb.slice(0,5));
-  showToast('Record guardado, ' + name + '!', 'success');
-  closeAliasModal();
-}
-function showLeaderboard() {
-  showScreen('leaderboardScreen');
-  switchLBTab(lbCurrentTab);
-}
-function switchLBTab(game) {
-  lbCurrentTab = game;
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.game===game));
-  const lb = getLB(game);
-  const list = document.getElementById('lbList');
-  if (lb.length===0) {
-    list.innerHTML = '<div class="lb-empty">Aun no hay records. Se el primero!</div>';
-    return;
-  }
-  list.innerHTML = lb.map((e,i) => `
-    <div class="lb-row">
-      <span class="lb-rank">#${i+1}</span>
-      <span class="lb-name">${escapeHTML(e.name)}</span>
-      <span class="lb-score">${e.score}</span>
-    </div>`).join('');
-}
-function escapeHTML(str) {
-  return str.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-}
-
-function bindHold(el, onDown, onUp) {
-  if (!el) return;
-  const start = e => { e.preventDefault(); el.classList.add('pressed'); onDown(); };
-  const end = e => { e.preventDefault(); el.classList.remove('pressed'); if (onUp) onUp(); };
-  el.addEventListener('touchstart', start, {passive:false});
-  el.addEventListener('touchend', end, {passive:false});
-  el.addEventListener('touchcancel', end, {passive:false});
-}
-
-document.querySelectorAll('#gameScreen .tc-dpad .tc-btn').forEach(btn => {
-  bindHold(btn, () => {
-    const dir = btn.dataset.dir;
-    if (activeGameLoop !== 'pacman') return;
-    if (dir==='up'){pacman.ndx=0;pacman.ndy=-1;}
-    else if (dir==='down'){pacman.ndx=0;pacman.ndy=1;}
-    else if (dir==='left'){pacman.ndx=-1;pacman.ndy=0;}
-    else if (dir==='right'){pacman.ndx=1;pacman.ndy=0;}
+  // ==========================================
+  // 04. MÁQUINAS Y BOBINADOS
+  // ==========================================
+  const getRotTipo = setupSeg('rot-tipo', val => {
+    if (val === 'sincrono') {
+      $('rot-field-s').style.visibility = 'hidden';
+    } else {
+      $('rot-field-s').style.visibility = 'visible';
+    }
+    calcRotativas();
   });
-});
+  ['rot-k','rot-polos','rot-f','rot-s'].forEach(id => $(id).addEventListener('input', calcRotativas));
 
-bindHold(document.getElementById('invBtnLeft'),
-  () => invState.keys.left = true, () => invState.keys.left = false);
-bindHold(document.getElementById('invBtnRight'),
-  () => invState.keys.right = true, () => invState.keys.right = false);
-bindHold(document.getElementById('invBtnFire'),
-  () => { invFire(); if (invState.phase === 'gameover') { invReset(); invState.phase='ready'; invState.readyTimer=80; } });
+  function calcRotativas() {
+    const tipo = getRotTipo();
+    const K = parseFloat($('rot-k').value);
+    const polos = parseFloat($('rot-polos').value);
+    const p = polos / 2;
+    const f = parseFloat($('rot-f').value);
+    const s = parseFloat($('rot-s').value);
 
-bindHold(document.getElementById('galBtnLeft'),
-  () => gal.keys.left = true, () => gal.keys.left = false);
-bindHold(document.getElementById('galBtnRight'),
-  () => gal.keys.right = true, () => gal.keys.right = false);
-bindHold(document.getElementById('galBtnFire'),
-  () => { galFire(); if (gal.phase === 'gameover') galReset(); });
+    if (!K || !polos || !f) return;
 
-bindHold(document.getElementById('arkBtnLeft'),
-  () => ark.keys.left = true, () => ark.keys.left = false);
-bindHold(document.getElementById('arkBtnRight'),
-  () => ark.keys.right = true, () => ark.keys.right = false);
-bindHold(document.getElementById('arkBtnFire'),
-  () => { arkLaunch(); if (ark.phase === 'gameover') arkReset(); });
+    // 1. Velocidad de sincronismo (ns)
+    const ns = (60 * f) / p;
 
-(function() {
-  let sx=0, sy=0;
-  canvas.addEventListener('touchstart', e => {
-    const t = e.touches[0]; sx=t.clientX; sy=t.clientY;
-  }, {passive:true});
-  canvas.addEventListener('touchend', e => {
-    if (activeGameLoop !== 'pacman') return;
-    const t = e.changedTouches[0];
-    const dx = t.clientX - sx, dy = t.clientY - sy;
-    if (Math.abs(dx) < 20 && Math.abs(dy) < 20) return;
-    if (Math.abs(dx) > Math.abs(dy)) { pacman.ndx = dx>0?1:-1; pacman.ndy = 0; }
-    else { pacman.ndy = dy>0?1:-1; pacman.ndx = 0; }
-  }, {passive:true});
-})();
+    // 2. Velocidad rotórica real (n) - depende de la máquina
+    let n = ns;
+    if (tipo === 'asincrono') {
+      n = ns * (1 - (s / 100));
+    } else {
+      // Síncronos y alternadores no tienen deslizamiento en régimen permanente
+      n = ns;
+    }
 
-(function() {
-  arkCanvas.addEventListener('touchstart', e => { e.preventDefault(); }, {passive:false});
-  arkCanvas.addEventListener('touchmove', e => {
-    if (activeGameLoop !== 'arkanoid') return;
-    const rect = arkCanvas.getBoundingClientRect();
-    const scale = AW / rect.width;
-    const x = (e.touches[0].clientX - rect.left) * scale;
-    ark.paddle.x = Math.max(8, Math.min(AW - 8 - ark.paddle.w, x - ark.paddle.w / 2));
-    e.preventDefault();
-  }, {passive:false});
-})();
+    // 3. Paso de ranura (Yg)
+    const yg = K / polos;
+
+    // 4. Grados eléctricos entre ranuras (gamma)
+    const gamma = (p * 360) / K;
+
+    // 5. Ranuras por polo y fase (q) para sistema trifásico
+    const q = K / (polos * 3);
+
+    // Volcar a la UI
+    $('rot-out-ns').innerHTML = isFinite(ns) ? fmt(ns, 0) + ' <span class="rb-unit">rpm</span>' : '—';
+    $('rot-out-n').innerHTML = isFinite(n) ? fmt(n, 1) + ' <span class="rb-unit">rpm</span>' : '—';
+    $('rot-out-yg').innerHTML = isFinite(yg) ? fmt(yg, 2) + ' <span class="rb-unit">ranuras</span>' : '—';
+    $('rot-out-gamma').innerHTML = isFinite(gamma) ? fmt(gamma, 2) + ' <span class="rb-unit">°elec</span>' : '—';
+    $('rot-out-q').innerHTML = isFinite(q) ? fmt(q, 2) : '—';
+  }
+  calcRotativas();
+
+  // TRANSFORMADORES (BOBINADOS)
+  const getBbSistema = setupSeg('bb-sistema', calcBobinado);
+  ['bb-sn','bb-f','bb-v1','bb-v2','bb-bmax','bb-ae'].forEach(id => $(id).addEventListener('input', calcBobinado));
+  function calcBobinado(){
+    const sistema = getBbSistema();
+    const Sn = parseFloat($('bb-sn').value) * 1000; // VA
+    const f = parseFloat($('bb-f').value);
+    const V1 = parseFloat($('bb-v1').value);
+    const V2 = parseFloat($('bb-v2').value);
+    const Bmax = parseFloat($('bb-bmax').value);
+    const AeCm2 = parseFloat($('bb-ae').value);
+    const Ae = AeCm2 / 10000; // m²
+
+    const espV = 1 / (4.44 * f * Bmax * Ae);
+    const N1 = V1 * espV;
+    const N2 = V2 * espV;
+    const a = N1 / N2;
+
+    let I1, I2;
+    if (sistema === '3'){
+      I1 = Sn / (SQRT3 * V1);
+      I2 = Sn / (SQRT3 * V2);
+    } else {
+      I1 = Sn / V1;
+      I2 = Sn / V2
+    }
+
+    $('bb-out-nv').innerHTML = (isFinite(espV) ? fmt(espV,3) : '—') + ' <span class="rb-unit">esp/V</span>';
+    $('bb-out-n1').innerHTML = (isFinite(N1) ? fmt(Math.round(N1),0) : '—') + ' <span class="rb-unit">espiras</span>';
+    $('bb-out-n2').innerHTML = (isFinite(N2) ? fmt(Math.round(N2),0) : '—') + ' <span class="rb-unit">espiras</span>';
+    $('bb-out-a').innerHTML = isFinite(a) ? fmt(a,3) : '—';
+    $('bb-out-i1').innerHTML = isFinite(I1) ? fmt(I1,2) + ' A' : '—';
+    $('bb-out-i2').innerHTML = isFinite(I2) ? fmt(I2,2) + ' A' : '—';
+  }
+  calcBobinado();
+
+
+  // ==========================================
+  // 05. FACTOR DE POTENCIA (NUEVO)
+  // ==========================================
+  const getFpSistema = setupSeg('fp-sistema', calcFactorPotencia);
+  ['fp-potencia', 'fp-tension', 'fp-frecuencia', 'fp-cos-ini', 'fp-cos-obj'].forEach(id => $(id).addEventListener('input', calcFactorPotencia));
+
+  function calcFactorPotencia() {
+    const sistema = getFpSistema();
+    const P = parseFloat($('fp-potencia').value) * 1000; // W
+    const V = parseFloat($('fp-tension').value);
+    const f = parseFloat($('fp-frecuencia').value);
+    const cosIni = parseFloat($('fp-cos-ini').value);
+    const cosObj = parseFloat($('fp-cos-obj').value);
+
+    if (!P || !V || !f || !cosIni || !cosObj || cosIni <= 0 || cosIni > 1 || cosObj <= 0 || cosObj > 1) return;
+
+    // Calcular ángulos (fi)
+    const phiIni = Math.acos(cosIni);
+    const phiObj = Math.acos(cosObj);
+
+    // Calcular tangentes
+    const tanPhiIni = Math.tan(phiIni);
+    const tanPhiObj = Math.tan(phiObj);
+
+    // Potencia reactiva total de la batería (Qc en var)
+    const Qc = P * (tanPhiIni - tanPhiObj);
+    const QcKvar = Qc / 1000;
+
+    let C_estrella = 0; // Monofásico o trifásico estrella por fase
+    let C_triangulo = 0; // Trifásico triángulo por fase
+    let Ic = 0;
+
+    // Fórmulas de capacidad eléctrica (F)
+    // C = Q / (w * V^2)
+    const omega = 2 * Math.PI * f;
+
+    if (sistema === '3') {
+      // Trifásico: Corriente de línea de la batería de condensadores
+      Ic = Qc / (SQRT3 * V);
+      // Capacidad por fase conectada en Estrella (tensión de fase = V / rad3)
+      C_estrella = (Qc / 3) / (omega * Math.pow(V / SQRT3, 2));
+      // Capacidad por fase conectada en Triángulo (tensión de fase = V)
+      C_triangulo = (Qc / 3) / (omega * Math.pow(V, 2));
+    } else {
+      // Monofásico
+      Ic = Qc / V;
+      C_estrella = Qc / (omega * Math.pow(V, 2));
+      C_triangulo = 0; // No aplica en monofásico
+    }
+
+    // Convertir capacidades a microfaradios (µF)
+    const Ce_uF = C_estrella * 1000000;
+    const Ct_uF = C_triangulo * 1000000;
+
+    // Volcar a la UI
+    $('fp-out-qc').innerHTML = isFinite(QcKvar) && QcKvar >= 0 ? fmt(QcKvar, 2) + ' <span class="rb-unit">kvar</span>' : '0.00 <span class="rb-unit">kvar</span>';
+    $('fp-out-c-estrella').innerHTML = isFinite(Ce_uF) && Ce_uF >= 0 ? fmt(Ce_uF, 2) + ' <span class="rb-unit">µF</span>' : '—';
+    $('fp-out-c-triangulo').innerHTML = sistema === '3' && isFinite(Ct_uF) && Ct_uF >= 0 ? fmt(Ct_uF, 2) + ' <span class="rb-unit">µF</span>' : '—';
+    $('fp-out-ic').innerHTML = isFinite(Ic) && Ic >= 0 ? fmt(Ic, 2) + ' <span class="rb-unit">A</span>' : '—';
+  }
+  calcFactorPotencia();
+
 </script>
 </body>
 </html>
