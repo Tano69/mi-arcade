@@ -111,6 +111,7 @@ body.is-touch .touch-controls{display:flex}
     <button class="btn" onclick="startInvaders()"><i class="fas fa-rocket" style="margin-right:8px"></i>SPACE INVADERS</button>
     <button class="btn" onclick="startGalaga()"><i class="fas fa-meteor" style="margin-right:8px"></i>GALAGA</button>
     <button class="btn" onclick="startArkanoid()"><i class="fas fa-th" style="margin-right:8px"></i>ARKANOID</button>
+    <button class="btn" onclick="startFrogger()"><i class="fas fa-frog" style="margin-right:8px"></i>FROGGER</button>
     <button class="btn btn-ghost" style="margin-top:20px; width:100%" onclick="showLeaderboard()"><i class="fas fa-trophy" style="margin-right:8px"></i>RECORDS</button>
   </div>
   <p style="color:var(--muted);font-size:.75rem;margin-top:24px;letter-spacing:1px">Experiencia exclusiva de arcade clásico</p>
@@ -223,6 +224,26 @@ body.is-touch .touch-controls{display:flex}
   <div class="controls-hint"><i class="fas fa-keyboard"></i> FLECHAS / WASD mover — ESPACIO lanzar — P pausar</div>
 </section>
 
+<section id="froggerScreen" class="screen">
+  <button class="back-link" onclick="exitToMenu()"><i class="fas fa-arrow-left"></i> Volver</button>
+  <div class="hud" style="max-width:480px">
+    <div class="hud-item"><div><div class="hud-label">PUNTOS</div><div class="hud-value" id="frScore">0</div></div></div>
+    <div class="hud-item"><div><div class="hud-label">NIVEL</div><div class="hud-value" id="frLevel">1</div></div></div>
+    <div class="hud-item"><div><div class="hud-label">VIDAS</div><div class="lives-display" id="frLives"></div></div></div>
+    <div class="hud-item"><div><div class="hud-label">RECORD</div><div class="hud-value" id="frHi">0</div></div></div>
+  </div>
+  <canvas id="frCanvas" style="border:2px solid var(--gold-dark);border-radius:4px;background:#000;margin-top:10px"></canvas>
+  <div class="touch-controls" style="justify-content:center">
+    <div class="tc-dpad">
+      <button class="tc-btn tc-up" id="frBtnUp"><i class="fas fa-caret-up"></i></button>
+      <button class="tc-btn tc-left" id="frBtnLeft"><i class="fas fa-caret-left"></i></button>
+      <button class="tc-btn tc-right" id="frBtnRight"><i class="fas fa-caret-right"></i></button>
+      <button class="tc-btn tc-down" id="frBtnDown"><i class="fas fa-caret-down"></i></button>
+    </div>
+  </div>
+  <div class="controls-hint"><i class="fas fa-keyboard"></i> FLECHAS / WASD mover — P pausar</div>
+</section>
+
 <section id="leaderboardScreen" class="screen">
   <button class="back-link" onclick="showScreen('startScreen')"><i class="fas fa-arrow-left"></i> Volver</button>
   <div class="title" style="font-size:2rem">RECORDS</div>
@@ -231,6 +252,7 @@ body.is-touch .touch-controls{display:flex}
     <button class="btn tab-btn" data-game="invaders" onclick="switchLBTab('invaders')">INVADERS</button>
     <button class="btn tab-btn" data-game="galaga" onclick="switchLBTab('galaga')">GALAGA</button>
     <button class="btn tab-btn" data-game="arkanoid" onclick="switchLBTab('arkanoid')">ARKANOID</button>
+    <button class="btn tab-btn" data-game="frogger" onclick="switchLBTab('frogger')">FROGGER</button>
   </div>
   <div class="leaderboard-list" id="lbList"></div>
 </section>
@@ -265,6 +287,7 @@ function exitToMenu() {
   invState.phase = 'menu';
   gal.phase = 'menu';
   ark.phase = 'menu';
+  frg.phase = 'menu';
   showScreen('startScreen');
 }
 
@@ -1060,9 +1083,9 @@ const GW = 480, GH = 560;
 galCanvas.width = GW; galCanvas.height = GH;
 
 const GAL_TYPES = {
-  bee:       { color:'#ffd23f', pts:50,  hp:1, w:20, h:16 },
-  butterfly: { color:'#40e0ff', pts:80,  hp:1, w:22, h:18 },
-  boss:      { color:'#ff5050', pts:150, hp:2, w:26, h:20 }
+  bee:       { color:'#f0c840', dark:'#8a5e12', pts:50,  hp:1, w:22, h:18 },
+  butterfly: { color:'#e34d8c', dark:'#3d5ce8', pts:80,  hp:1, w:27, h:21 },
+  boss:      { color:'#3ee8c8', dark:'#e34dc8', pts:150, hp:2, w:32, h:25 }
 };
 
 let gal = {
@@ -1246,15 +1269,72 @@ function galSpawnBoom(x,y,color,n=10){
 
 function galDrawEnemy(e){
   const cfg = GAL_TYPES[e.type];
+  const flap = Math.sin(gal.tick*0.18 + e.slotX*0.3) * 0.35;
   gctx.save(); gctx.translate(e.x,e.y);
-  gctx.fillStyle=cfg.color; gctx.beginPath(); gctx.moveTo(0,-cfg.h/2); gctx.lineTo(cfg.w/2,0); gctx.lineTo(cfg.w/3,cfg.h/2); gctx.lineTo(-cfg.w/3,cfg.h/2); gctx.lineTo(-cfg.w/2,0); gctx.closePath(); gctx.fill();
-  gctx.fillStyle='#fff'; gctx.beginPath(); gctx.arc(-3,-1,1.6,0,Math.PI*2); gctx.arc(3,-1,1.6,0,Math.PI*2); gctx.fill();
+
+  if (e.type==='bee') {
+    gctx.save(); gctx.rotate(flap*0.5);
+    gctx.fillStyle = cfg.dark;
+    gctx.beginPath(); gctx.ellipse(-cfg.w*0.55,-1,cfg.w*0.4,cfg.h*0.3,0.3,0,Math.PI*2); gctx.fill();
+    gctx.beginPath(); gctx.ellipse(cfg.w*0.55,-1,cfg.w*0.4,cfg.h*0.3,-0.3,0,Math.PI*2); gctx.fill();
+    gctx.restore();
+    gctx.fillStyle = cfg.color;
+    gctx.beginPath();
+    gctx.moveTo(0,-cfg.h/2); gctx.lineTo(cfg.w/2,-cfg.h*0.05); gctx.lineTo(cfg.w/3,cfg.h/2);
+    gctx.lineTo(-cfg.w/3,cfg.h/2); gctx.lineTo(-cfg.w/2,-cfg.h*0.05);
+    gctx.closePath(); gctx.fill();
+    gctx.strokeStyle = cfg.dark; gctx.lineWidth = 1.6;
+    gctx.beginPath(); gctx.moveTo(-cfg.w*0.32,-cfg.h*0.05); gctx.lineTo(cfg.w*0.32,-cfg.h*0.05); gctx.stroke();
+    gctx.beginPath(); gctx.moveTo(-cfg.w*0.26,cfg.h*0.2); gctx.lineTo(cfg.w*0.26,cfg.h*0.2); gctx.stroke();
+    gctx.strokeStyle = cfg.dark; gctx.lineWidth = 1.2;
+    gctx.beginPath(); gctx.moveTo(-4,-cfg.h/2); gctx.lineTo(-7,-cfg.h/2-5); gctx.stroke();
+    gctx.beginPath(); gctx.moveTo(4,-cfg.h/2); gctx.lineTo(7,-cfg.h/2-5); gctx.stroke();
+    gctx.fillStyle='#1a1a1a'; gctx.beginPath(); gctx.arc(-4,-1,1.8,0,Math.PI*2); gctx.arc(4,-1,1.8,0,Math.PI*2); gctx.fill();
+  } else if (e.type==='butterfly') {
+    gctx.save(); gctx.rotate(flap*0.4);
+    gctx.fillStyle = cfg.dark;
+    gctx.beginPath();
+    gctx.moveTo(0,-2); gctx.quadraticCurveTo(-cfg.w*0.5,-cfg.h*0.7,-cfg.w*0.62,-cfg.h*0.1);
+    gctx.quadraticCurveTo(-cfg.w*0.5,cfg.h*0.35,0,cfg.h*0.15); gctx.closePath(); gctx.fill();
+    gctx.beginPath();
+    gctx.moveTo(0,-2); gctx.quadraticCurveTo(cfg.w*0.5,-cfg.h*0.7,cfg.w*0.62,-cfg.h*0.1);
+    gctx.quadraticCurveTo(cfg.w*0.5,cfg.h*0.35,0,cfg.h*0.15); gctx.closePath(); gctx.fill();
+    gctx.restore();
+    gctx.fillStyle = cfg.color;
+    gctx.beginPath();
+    gctx.moveTo(0,-cfg.h/2); gctx.lineTo(cfg.w*0.28,cfg.h*0.05); gctx.lineTo(cfg.w*0.2,cfg.h/2);
+    gctx.lineTo(-cfg.w*0.2,cfg.h/2); gctx.lineTo(-cfg.w*0.28,cfg.h*0.05);
+    gctx.closePath(); gctx.fill();
+    gctx.fillStyle='#fff'; gctx.beginPath(); gctx.arc(-4,-2,1.8,0,Math.PI*2); gctx.arc(4,-2,1.8,0,Math.PI*2); gctx.fill();
+    gctx.fillStyle='#1a1a1a'; gctx.beginPath(); gctx.arc(-4,-2,1,0,Math.PI*2); gctx.arc(4,-2,1,0,Math.PI*2); gctx.fill();
+  } else {
+    const damaged = e.hp < GAL_TYPES.boss.hp;
+    gctx.save(); gctx.rotate(flap*0.3);
+    gctx.fillStyle = cfg.dark;
+    gctx.beginPath();
+    gctx.moveTo(-2,-4); gctx.quadraticCurveTo(-cfg.w*0.65,-cfg.h*0.75,-cfg.w*0.7,0);
+    gctx.quadraticCurveTo(-cfg.w*0.55,cfg.h*0.45,-6,cfg.h*0.18); gctx.closePath(); gctx.fill();
+    gctx.beginPath();
+    gctx.moveTo(2,-4); gctx.quadraticCurveTo(cfg.w*0.65,-cfg.h*0.75,cfg.w*0.7,0);
+    gctx.quadraticCurveTo(cfg.w*0.55,cfg.h*0.45,6,cfg.h*0.18); gctx.closePath(); gctx.fill();
+    gctx.restore();
+    gctx.fillStyle = damaged ? '#e0505a' : cfg.color;
+    gctx.beginPath();
+    gctx.moveTo(0,-cfg.h/2); gctx.lineTo(cfg.w*0.3,-cfg.h*0.1); gctx.lineTo(cfg.w*0.22,cfg.h*0.5);
+    gctx.lineTo(-cfg.w*0.22,cfg.h*0.5); gctx.lineTo(-cfg.w*0.3,-cfg.h*0.1);
+    gctx.closePath(); gctx.fill();
+    gctx.strokeStyle = cfg.dark; gctx.lineWidth = 1.4;
+    gctx.beginPath(); gctx.moveTo(-6,-cfg.h/2); gctx.lineTo(-9,-cfg.h/2-6); gctx.stroke();
+    gctx.beginPath(); gctx.moveTo(6,-cfg.h/2); gctx.lineTo(9,-cfg.h/2-6); gctx.stroke();
+    gctx.fillStyle='#ffe86a'; gctx.beginPath(); gctx.arc(-5,-2,2,0,Math.PI*2); gctx.arc(5,-2,2,0,Math.PI*2); gctx.fill();
+    gctx.fillStyle='#1a1a1a'; gctx.beginPath(); gctx.arc(-5,-2,1,0,Math.PI*2); gctx.arc(5,-2,1,0,Math.PI*2); gctx.fill();
+  }
   gctx.restore();
 }
 
 function galDraw() {
   gctx.fillStyle='#000'; gctx.fillRect(0,0,GW,GH);
-  gal.stars.forEach(s=>{ gctx.fillStyle=`rgba(212,168,67,${s.a})`; gctx.fillRect(s.x,s.y,s.s,s.s); });
+  gal.stars.forEach((s,i)=>{ const tw=0.6+Math.sin(gal.tick*0.08+i)*0.4; gctx.fillStyle=`rgba(212,168,67,${s.a*tw})`; gctx.fillRect(s.x,s.y,s.s,s.s); });
 
   if (gal.flashTimer>0) { gctx.fillStyle=`rgba(255,80,80,${gal.flashTimer/12*0.3})`; gctx.fillRect(0,0,GW,GH); }
 
@@ -1262,11 +1342,33 @@ function galDraw() {
 
   const p = gal.player;
   if (p.alive && (p.blink===0 || Math.floor(p.blink/4)%2===0)) {
-    gctx.save(); gctx.translate(p.x+p.w/2,p.y+p.h/2); gctx.fillStyle='#f0d078'; gctx.beginPath(); gctx.moveTo(0,-p.h/2); gctx.lineTo(p.w/2,p.h/2); gctx.lineTo(0,p.h/4); gctx.lineTo(-p.w/2,p.h/2); gctx.closePath(); gctx.fill(); gctx.restore();
+    gctx.save(); gctx.translate(p.x+p.w/2,p.y+p.h/2);
+    const flick = 6+Math.sin(gal.tick*0.6)*3;
+    gctx.fillStyle='#ff8040';
+    gctx.beginPath(); gctx.moveTo(-3,p.h/2); gctx.lineTo(0,p.h/2+flick); gctx.lineTo(3,p.h/2); gctx.closePath(); gctx.fill();
+    gctx.fillStyle='#e0344a';
+    gctx.beginPath(); gctx.moveTo(-p.w/2,p.h/2); gctx.lineTo(-p.w*0.18,p.h*0.05); gctx.lineTo(-p.w*0.1,p.h/2-1); gctx.closePath(); gctx.fill();
+    gctx.beginPath(); gctx.moveTo(p.w/2,p.h/2); gctx.lineTo(p.w*0.18,p.h*0.05); gctx.lineTo(p.w*0.1,p.h/2-1); gctx.closePath(); gctx.fill();
+    gctx.fillStyle='#f2f2f2';
+    gctx.beginPath();
+    gctx.moveTo(0,-p.h/2); gctx.lineTo(p.w*0.22,p.h*0.3); gctx.lineTo(p.w*0.08,p.h/2);
+    gctx.lineTo(-p.w*0.08,p.h/2); gctx.lineTo(-p.w*0.22,p.h*0.3);
+    gctx.closePath(); gctx.fill();
+    gctx.fillStyle='#4ad9ff'; gctx.beginPath(); gctx.arc(0,-1,2.6,0,Math.PI*2); gctx.fill();
+    gctx.fillStyle='#e0344a'; gctx.fillRect(-1,-p.h/2-3,2,4);
+    gctx.restore();
   }
 
-  gal.bullets.forEach(b=>{ gctx.fillStyle='#fff'; gctx.fillRect(b.x-1,b.y-6,2,8); });
-  gal.enemyBullets.forEach(b=>{ gctx.fillStyle='#ff6060'; gctx.fillRect(b.x-1,b.y,2,8); });
+  gal.bullets.forEach(b=>{
+    const grad = gctx.createLinearGradient(b.x,b.y-8,b.x,b.y+2);
+    grad.addColorStop(0,'rgba(255,255,255,0)'); grad.addColorStop(1,'#fff');
+    gctx.fillStyle=grad; gctx.fillRect(b.x-1.5,b.y-8,3,10);
+  });
+  gal.enemyBullets.forEach(b=>{
+    const grad = gctx.createLinearGradient(b.x,b.y,b.x,b.y+10);
+    grad.addColorStop(0,'#ff6060'); grad.addColorStop(1,'rgba(255,96,96,0)');
+    gctx.fillStyle=grad; gctx.fillRect(b.x-1.5,b.y,3,10);
+  });
 
   galParticles = galParticles.filter(pt=>{ pt.x+=pt.vx; pt.y+=pt.vy; pt.vy+=0.05; pt.life--; return pt.life>0; });
   galParticles.forEach(pt=>{ gctx.globalAlpha=pt.life/pt.max; gctx.fillStyle=pt.color; gctx.fillRect(pt.x-pt.r/2,pt.y-pt.r/2,pt.r,pt.r); });
@@ -1580,6 +1682,17 @@ document.addEventListener('keydown', e => {
     if (e.key==='p'||e.key==='P') { ark.phase = (ark.phase === 'playing') ? 'paused' : 'playing'; }
     if (e.key==='Enter' && ark.phase==='gameover') { arkReset(); }
   }
+
+  if (activeGameLoop === 'frogger') {
+    if (frg.phase==='playing') {
+      if ((e.key==='ArrowUp'||e.key==='w'||e.key==='W') && !e.repeat) { frMove(0,-1); e.preventDefault(); }
+      if ((e.key==='ArrowDown'||e.key==='s'||e.key==='S') && !e.repeat) { frMove(0,1); e.preventDefault(); }
+      if ((e.key==='ArrowLeft'||e.key==='a'||e.key==='A') && !e.repeat) { frMove(-1,0); e.preventDefault(); }
+      if ((e.key==='ArrowRight'||e.key==='d'||e.key==='D') && !e.repeat) { frMove(1,0); e.preventDefault(); }
+    }
+    if (e.key==='p'||e.key==='P') { frg.phase = (frg.phase === 'playing') ? 'paused' : (frg.phase==='paused' ? 'playing' : frg.phase); }
+    if (e.key==='Enter' && frg.phase==='gameover') { frReset(); }
+  }
 });
 
 document.addEventListener('keyup', e => {
@@ -1617,8 +1730,424 @@ function arkResize() {
   const scale=Math.min(maxW/AW, maxH/AH, 1);
   arkCanvas.style.width=(AW*scale)+'px'; arkCanvas.style.height=(AH*scale)+'px';
 }
-window.addEventListener('resize', () => { resizeGameCanvas(); invResize(); galResize(); arkResize(); });
+window.addEventListener('resize', () => { resizeGameCanvas(); invResize(); galResize(); arkResize(); frResize(); });
 resizeGameCanvas();
+
+/* ===== FROGGER ===== */
+const frCanvas = document.getElementById('frCanvas');
+const fctx = frCanvas.getContext('2d');
+const FW = 480, FH = 560, FTILE = 40;
+frCanvas.width = FW; frCanvas.height = FH;
+
+const FROG_GOAL_ROW = 0;
+const FROG_RIVER_ROWS = [1,2,3,4,5,6];
+const FROG_MEDIAN_ROW = 7;
+const FROG_ROAD_ROWS = [8,9,10,11,12];
+const FROG_START_ROW = 13;
+const FROG_PAD_COLS = [1,3,5,7,9];
+const FROG_TIME_LIMIT = 1800;
+
+let frg = {
+  score:0, hi:0, level:1, lives:3,
+  phase:'menu', readyTimer:75, levelUpTimer:0,
+  lanes:[], pads:[], particles:[], timer:FROG_TIME_LIMIT,
+  minRow:FROG_START_ROW, flashTimer:0, deathTimer:0,
+  tick:0, _looping:false
+};
+let frPlayer = { x:FTILE*5, row:FROG_START_ROW };
+
+function frMakeLane(row, type, dir, speed, itemW, gap, kind) {
+  const step = itemW + gap;
+  const count = Math.ceil(FW/step) + 2;
+  const items = [];
+  for (let i=0;i<count;i++) items.push({ x: i*step - step, w: itemW });
+  return { row, type, dir, speed, items, step, kind };
+}
+
+const FROG_CAR_KINDS = ['sedan','truck','sports','van'];
+const FROG_CAR_COLORS = { sedan:'#f0d878', truck:'#40a0e0', sports:'#e04050', van:'#ff8040' };
+const FROG_RIVER_KINDS = ['log','turtle'];
+
+function frInitLevel() {
+  const lvl = frg.level;
+  frg.lanes = [];
+  FROG_ROAD_ROWS.forEach((row,i) => {
+    const dir = i%2===0 ? -1 : 1;
+    const speed = 0.65 + i*0.2 + (lvl-1)*0.28;
+    const w = 46 + (i%3)*10;
+    const gap = 90 + (i%2)*30;
+    frg.lanes.push(frMakeLane(row,'road',dir,speed,w,gap,FROG_CAR_KINDS[i%FROG_CAR_KINDS.length]));
+  });
+  FROG_RIVER_ROWS.forEach((row,i) => {
+    const dir = i%2===0 ? 1 : -1;
+    const speed = 0.45 + i*0.14 + (lvl-1)*0.22;
+    const w = i%2===0 ? 100 : 64;
+    const kind = i%3===0 ? 'turtle' : 'log';
+    frg.lanes.push(frMakeLane(row,'river',dir,speed,w,60,kind));
+  });
+  frg.pads = FROG_PAD_COLS.map(col => ({ col, occupied:false }));
+  frg.particles = [];
+  frFrogReset();
+}
+
+function frFrogReset() {
+  frPlayer.x = FTILE*5;
+  frPlayer.row = FROG_START_ROW;
+  frg.minRow = FROG_START_ROW;
+  frg.timer = Math.max(900, FROG_TIME_LIMIT - (frg.level-1)*100);
+}
+
+function frReset() {
+  frg.score=0; frg.level=1; frg.lives=3;
+  frg.phase='ready'; frg.readyTimer=75;
+  frInitLevel();
+}
+
+function startFrogger() {
+  activeGameLoop = 'frogger';
+  frReset();
+  showScreen('froggerScreen');
+  frResize();
+  if (!frg._looping) { frg._looping = true; frLoop(); }
+}
+
+function frUpdateHUD() {
+  document.getElementById('frScore').textContent = frg.score;
+  document.getElementById('frLevel').textContent = frg.level;
+  document.getElementById('frHi').textContent = frg.hi;
+  let l=''; for(let i=0;i<3;i++) l+=`<div class="life-icon ${i<frg.lives?'':'lost'}"></div>`;
+  document.getElementById('frLives').innerHTML = l;
+}
+
+function frSpawnBoom(x,y,color,n=10) {
+  for (let i=0;i<n;i++) {
+    const a=Math.random()*Math.PI*2, sp=Math.random()*2+.5;
+    frg.particles.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,life:20+Math.random()*10,max:30,color,r:Math.random()*2+1});
+  }
+}
+
+function frMove(dx,dy) {
+  if (frg.phase!=='playing') return;
+  if (dy!==0) {
+    frPlayer.row = Math.max(0, Math.min(FROG_START_ROW, frPlayer.row+dy));
+    if (frPlayer.row < frg.minRow) {
+      frg.minRow = frPlayer.row;
+      frg.score += 10;
+      if (frg.score>frg.hi) frg.hi = frg.score;
+    }
+  }
+  if (dx!==0) {
+    frPlayer.x = Math.max(0, Math.min(FW-FTILE, frPlayer.x+dx*FTILE));
+  }
+}
+
+function frDie(reason) {
+  if (frg.deathTimer>0 || frg.phase!=='playing') return;
+  frg.deathTimer = 1;
+  frg.flashTimer = 14;
+  frSpawnBoom(frPlayer.x+FTILE/2, frPlayer.row*FTILE+FTILE/2, reason==='water' ? '#40e0ff' : '#ff5050', 14);
+}
+
+function frUpdate() {
+  frg.tick++;
+  if (frg.flashTimer>0) frg.flashTimer--;
+
+  if (frg.phase==='ready') { frg.readyTimer--; if(frg.readyTimer<=0) frg.phase='playing'; return; }
+  if (frg.phase!=='playing') return;
+
+  frg.lanes.forEach(lane => {
+    const total = lane.step * lane.items.length;
+    lane.items.forEach(item => {
+      item.x += lane.dir*lane.speed;
+      if (lane.dir>0 && item.x > FW) item.x -= total;
+      if (lane.dir<0 && item.x + item.w < 0) item.x += total;
+    });
+  });
+
+  frg.timer--;
+  if (frg.timer<=0) { frDie('time'); }
+
+  const row = frPlayer.row;
+  const cx = frPlayer.x + FTILE/2;
+  if (FROG_ROAD_ROWS.includes(row)) {
+    const lane = frg.lanes.find(l=>l.row===row);
+    const fx1=frPlayer.x+6, fx2=frPlayer.x+FTILE-6;
+    for (const item of lane.items) {
+      if (fx2>item.x && fx1<item.x+item.w) { frDie('car'); break; }
+    }
+  } else if (FROG_RIVER_ROWS.includes(row)) {
+    const lane = frg.lanes.find(l=>l.row===row);
+    let riding = null;
+    for (const item of lane.items) {
+      if (cx>=item.x && cx<=item.x+item.w) { riding = item; break; }
+    }
+    if (!riding) { frDie('water'); }
+    else {
+      frPlayer.x += lane.dir*lane.speed;
+      if (frPlayer.x<-FTILE/2 || frPlayer.x>FW-FTILE/2) frDie('water');
+    }
+  } else if (row===FROG_GOAL_ROW) {
+    const padCol = Math.round(frPlayer.x/FTILE);
+    const pad = frg.pads.find(p=>p.col===padCol);
+    if (pad && !pad.occupied) {
+      pad.occupied = true;
+      frg.score += 50 + Math.floor(frg.timer/60)*2;
+      if (frg.score>frg.hi) frg.hi = frg.score;
+      frSpawnBoom(frPlayer.x+FTILE/2, FTILE/2, '#40d870', 12);
+      if (frg.pads.every(p=>p.occupied)) {
+        frg.phase='levelup'; frg.levelUpTimer=100;
+      } else {
+        frFrogReset();
+      }
+    } else {
+      frDie('water');
+    }
+  }
+
+  frg.particles = frg.particles.filter(pt=>{ pt.x+=pt.vx; pt.y+=pt.vy; pt.vy+=0.05; pt.life--; return pt.life>0; });
+
+  frUpdateHUD();
+}
+
+function frDrawTile(row, color) {
+  fctx.fillStyle = color;
+  fctx.fillRect(0, row*FTILE, FW, FTILE);
+}
+
+function frDrawGrass(row) {
+  fctx.fillStyle = '#0d2b12';
+  fctx.fillRect(0, row*FTILE, FW, FTILE);
+  fctx.fillStyle = '#123a18';
+  for (let x=0; x<FW; x+=8) {
+    const h = 4 + ((x*7+row*13) % 5);
+    const yOff = (x*3+row*17) % FTILE;
+    fctx.fillRect(x, row*FTILE + yOff, 2, h);
+  }
+}
+
+function frDrawRoad(row) {
+  fctx.fillStyle = '#1a1a1a';
+  fctx.fillRect(0, row*FTILE, FW, FTILE);
+  fctx.strokeStyle = 'rgba(255,255,255,.35)';
+  fctx.lineWidth = 2;
+  fctx.setLineDash([14,10]);
+  fctx.beginPath();
+  fctx.moveTo(0, row*FTILE+FTILE); fctx.lineTo(FW, row*FTILE+FTILE);
+  fctx.stroke();
+  fctx.setLineDash([]);
+}
+
+function frDrawWater(row) {
+  fctx.fillStyle = '#0a2647';
+  fctx.fillRect(0, row*FTILE, FW, FTILE);
+  fctx.strokeStyle = 'rgba(120,190,255,.25)';
+  fctx.lineWidth = 2;
+  const wobble = Math.sin(frg.tick*0.05 + row*1.3)*4;
+  for (let wy=8; wy<FTILE; wy+=12) {
+    fctx.beginPath();
+    for (let x=0; x<=FW; x+=16) {
+      const y = row*FTILE + wy + Math.sin((x+frg.tick*1.5)*0.05 + row)*2 + wobble*0.2;
+      if (x===0) fctx.moveTo(x,y); else fctx.lineTo(x,y);
+    }
+    fctx.stroke();
+  }
+}
+
+function frDrawCar(item, row, kind) {
+  const y = row*FTILE+4, h = FTILE-8;
+  const color = FROG_CAR_COLORS[kind] || '#e04050';
+  const facing = frg.lanes.find(l=>l.row===row).dir;
+  fctx.fillStyle = 'rgba(0,0,0,.4)';
+  fctx.fillRect(item.x+2, y+h-3, item.w-2, 3);
+  fctx.fillStyle = color;
+  if (kind==='truck' || kind==='van') {
+    fctx.fillRect(item.x, y, item.w, h);
+    fctx.fillStyle = 'rgba(0,0,0,.25)';
+    fctx.fillRect(facing>0 ? item.x+item.w-item.w*0.32 : item.x, y, item.w*0.32, h);
+  } else {
+    fctx.beginPath();
+    fctx.moveTo(item.x+6, y);
+    fctx.lineTo(item.x+item.w-6, y);
+    fctx.quadraticCurveTo(item.x+item.w, y, item.x+item.w, y+h/2);
+    fctx.quadraticCurveTo(item.x+item.w, y+h, item.x+item.w-6, y+h);
+    fctx.lineTo(item.x+6, y+h);
+    fctx.quadraticCurveTo(item.x, y+h, item.x, y+h/2);
+    fctx.quadraticCurveTo(item.x, y, item.x+6, y);
+    fctx.fill();
+  }
+  fctx.fillStyle = 'rgba(180,225,255,.55)';
+  const wx = facing>0 ? item.x+item.w*0.55 : item.x+item.w*0.15;
+  fctx.fillRect(wx, y+3, item.w*0.3, h-6);
+  fctx.fillStyle = '#111';
+  fctx.beginPath(); fctx.arc(item.x+8, y+h+2, 4, 0, Math.PI*2); fctx.fill();
+  fctx.beginPath(); fctx.arc(item.x+item.w-8, y+h+2, 4, 0, Math.PI*2); fctx.fill();
+  fctx.fillStyle = facing>0 ? '#fff8c0' : '#ff5030';
+  fctx.beginPath(); fctx.arc(facing>0?item.x+item.w-3:item.x+3, y+h/2, 2.5,0,Math.PI*2); fctx.fill();
+}
+
+function frDrawLog(item, row) {
+  const y = row*FTILE+8, h = FTILE-16;
+  const grad = fctx.createLinearGradient(0,y,0,y+h);
+  grad.addColorStop(0,'#a9764a'); grad.addColorStop(1,'#6b431f');
+  fctx.fillStyle = grad;
+  fctx.beginPath();
+  fctx.moveTo(item.x+6,y);
+  fctx.arc(item.x+6,y+h/2,h/2,-Math.PI/2,Math.PI/2,true);
+  fctx.lineTo(item.x+item.w-6,y+h);
+  fctx.arc(item.x+item.w-6,y+h/2,h/2,Math.PI/2,-Math.PI/2,true);
+  fctx.closePath();
+  fctx.fill();
+  fctx.strokeStyle = 'rgba(0,0,0,.3)'; fctx.lineWidth = 1.5;
+  for (let lx=item.x+12; lx<item.x+item.w-8; lx+=14) {
+    fctx.beginPath(); fctx.arc(lx, y+h/2, h*0.3, 0, Math.PI*2); fctx.stroke();
+  }
+}
+
+function frDrawTurtle(item, row) {
+  const y = row*FTILE+FTILE/2, seg = item.w/2;
+  for (let s=0; s<2; s++) {
+    const cx = item.x + seg*s + seg/2;
+    fctx.fillStyle = '#2f8f52';
+    fctx.beginPath(); fctx.ellipse(cx, y, seg/2-2, 12, 0, 0, Math.PI*2); fctx.fill();
+    fctx.strokeStyle = '#1c5c34'; fctx.lineWidth = 1.5;
+    fctx.beginPath(); fctx.ellipse(cx, y, seg/2-6, 8, 0, 0, Math.PI*2); fctx.stroke();
+    fctx.fillStyle = '#3ea060';
+    fctx.beginPath(); fctx.arc(cx+(item.x<FW/2?seg/2-4:-(seg/2-4)), y, 4, 0, Math.PI*2); fctx.fill();
+  }
+}
+
+function frDrawFrog() {
+  const cx = frPlayer.x+FTILE/2, cy = frPlayer.row*FTILE+FTILE/2;
+  fctx.fillStyle = '#1c8a3c';
+  const legs = [[-13,-9],[13,-9],[-15,7],[15,7]];
+  legs.forEach(([lx,ly])=>{
+    fctx.beginPath(); fctx.ellipse(cx+lx, cy+ly, 6, 4, Math.atan2(ly,lx), 0, Math.PI*2); fctx.fill();
+  });
+  fctx.fillStyle = '#2fb356';
+  fctx.beginPath(); fctx.ellipse(cx, cy+2, 12, 10, 0, 0, Math.PI*2); fctx.fill();
+  fctx.fillStyle = '#e8f5df';
+  fctx.beginPath(); fctx.ellipse(cx, cy+6, 6, 4, 0, 0, Math.PI*2); fctx.fill();
+  fctx.fillStyle = '#2fb356';
+  fctx.beginPath(); fctx.arc(cx-6, cy-6, 5, 0, Math.PI*2); fctx.fill();
+  fctx.beginPath(); fctx.arc(cx+6, cy-6, 5, 0, Math.PI*2); fctx.fill();
+  fctx.fillStyle = '#0c2a12';
+  fctx.beginPath(); fctx.arc(cx-6, cy-6, 2, 0, Math.PI*2); fctx.fill();
+  fctx.beginPath(); fctx.arc(cx+6, cy-6, 2, 0, Math.PI*2); fctx.fill();
+}
+
+function frDraw() {
+  fctx.fillStyle='#000'; fctx.fillRect(0,0,FW,FH);
+
+  frDrawGrass(FROG_GOAL_ROW);
+  FROG_RIVER_ROWS.forEach(r=>frDrawWater(r));
+  frDrawGrass(FROG_MEDIAN_ROW);
+  FROG_ROAD_ROWS.forEach(r=>frDrawRoad(r));
+  frDrawGrass(FROG_START_ROW);
+
+  FROG_PAD_COLS.forEach(col => {
+    const pad = frg.pads.find(p=>p.col===col);
+    const px = col*FTILE+FTILE/2, py = FROG_GOAL_ROW*FTILE+FTILE/2;
+    fctx.fillStyle = '#082014';
+    fctx.beginPath(); fctx.arc(px, py, 17, 0, Math.PI*2); fctx.fill();
+    if (pad && pad.occupied) {
+      fctx.fillStyle = '#2fb356';
+      fctx.beginPath(); fctx.ellipse(px, py+2, 10, 8, 0, 0, Math.PI*2); fctx.fill();
+      fctx.fillStyle = '#0c2a12';
+      fctx.beginPath(); fctx.arc(px-4, py-3, 1.6, 0, Math.PI*2); fctx.fill();
+      fctx.beginPath(); fctx.arc(px+4, py-3, 1.6, 0, Math.PI*2); fctx.fill();
+    } else {
+      fctx.fillStyle = 'rgba(212,168,67,.5)';
+      fctx.beginPath();
+      fctx.moveTo(px, py-9); fctx.lineTo(px+7, py); fctx.lineTo(px, py+9); fctx.lineTo(px-7, py);
+      fctx.closePath();
+      fctx.fill();
+    }
+  });
+
+  frg.lanes.forEach(lane => {
+    lane.items.forEach(item => {
+      if (lane.type==='road') frDrawCar(item, lane.row, lane.kind);
+      else if (lane.kind==='turtle') frDrawTurtle(item, lane.row);
+      else frDrawLog(item, lane.row);
+    });
+  });
+
+  if (frg.flashTimer>0) { fctx.fillStyle=`rgba(255,80,80,${frg.flashTimer/14*0.3})`; fctx.fillRect(0,0,FW,FH); }
+
+  frDrawFrog();
+
+  frg.particles.forEach(pt=>{ fctx.globalAlpha=pt.life/pt.max; fctx.fillStyle=pt.color; fctx.fillRect(pt.x-pt.r/2,pt.y-pt.r/2,pt.r,pt.r); });
+  fctx.globalAlpha=1;
+
+  if (frg.phase==='playing') {
+    const w = 100, pct = Math.max(0,frg.timer/FROG_TIME_LIMIT);
+    fctx.fillStyle='rgba(255,255,255,.15)'; fctx.fillRect(FW-w-10,8,w,6);
+    fctx.fillStyle = pct<0.25 ? '#e04050' : '#f0d078';
+    fctx.fillRect(FW-w-10,8,w*pct,6);
+  }
+
+  if (frg.phase==='ready') {
+    fctx.fillStyle='rgba(0,0,0,0.55)'; fctx.fillRect(0,0,FW,FH);
+    fctx.fillStyle='#f0d078'; fctx.font='bold 22px Orbitron'; fctx.textAlign='center';
+    fctx.fillText('FROGGER', FW/2, FH/2-8);
+    fctx.font='14px Space Grotesk'; fctx.fillStyle='#888';
+    fctx.fillText('Nivel '+frg.level, FW/2, FH/2+18);
+  }
+  if (frg.phase==='paused') {
+    fctx.fillStyle='rgba(0,0,0,0.65)'; fctx.fillRect(0,0,FW,FH);
+    fctx.fillStyle='#f0d078'; fctx.font='bold 28px Orbitron'; fctx.textAlign='center';
+    fctx.fillText('PAUSA', FW/2, FH/2);
+  }
+  if (frg.phase==='levelup') {
+    fctx.fillStyle=`rgba(0,0,0,${Math.min(0.7,(100-frg.levelUpTimer)/100*0.7)})`; fctx.fillRect(0,0,FW,FH);
+    fctx.fillStyle='#40d870'; fctx.font='bold 20px Orbitron'; fctx.textAlign='center';
+    fctx.fillText('NIVEL '+frg.level+' SUPERADO', FW/2, FH/2);
+  }
+  if (frg.phase==='gameover') {
+    fctx.fillStyle='rgba(0,0,0,0.75)'; fctx.fillRect(0,0,FW,FH);
+    fctx.fillStyle='#e04050'; fctx.font='bold 28px Orbitron'; fctx.textAlign='center';
+    fctx.fillText('GAME OVER', FW/2, FH/2-20);
+    fctx.fillStyle='#f0d078'; fctx.font='16px Orbitron';
+    fctx.fillText('PUNTOS: '+frg.score, FW/2, FH/2+10);
+  }
+}
+
+function frLoop() {
+  if (activeGameLoop !== 'frogger') return;
+  const wasGameOver = frg.phase === 'gameover';
+
+  if (frg.phase==='playing' || frg.phase==='ready') frUpdate();
+
+  if (frg.deathTimer===1 && frg.phase==='playing') {
+    frg.lives--;
+    if (frg.lives<=0) {
+      frg.phase='gameover';
+    } else {
+      frFrogReset();
+    }
+    frg.deathTimer=0;
+  }
+
+  if (frg.phase==='levelup') {
+    frg.levelUpTimer--;
+    if (frg.levelUpTimer<=0) {
+      frg.level++;
+      frInitLevel();
+      frg.phase='ready'; frg.readyTimer=75;
+    }
+  }
+
+  if (frg.phase === 'gameover' && !wasGameOver) { offerAlias('frogger', frg.score); }
+
+  frDraw();
+  requestAnimationFrame(frLoop);
+}
+
+function frResize() {
+  const maxW=window.innerWidth-20, maxH=window.innerHeight-140;
+  const scale=Math.min(maxW/FW, maxH/FH, 1);
+  frCanvas.style.width=(FW*scale)+'px'; frCanvas.style.height=(FH*scale)+'px';
+}
 
 function getLB(game) {
   try { return JSON.parse(localStorage.getItem('lb_'+game) || '[]'); }
@@ -1722,6 +2251,11 @@ bindHold(document.getElementById('arkBtnRight'),
   () => ark.keys.right = true, () => ark.keys.right = false);
 bindHold(document.getElementById('arkBtnFire'),
   () => { arkLaunch(); if (ark.phase === 'gameover') arkReset(); });
+
+bindHold(document.getElementById('frBtnUp'), () => { if (frg.phase==='gameover') frReset(); else frMove(0,-1); });
+bindHold(document.getElementById('frBtnDown'), () => frMove(0,1));
+bindHold(document.getElementById('frBtnLeft'), () => frMove(-1,0));
+bindHold(document.getElementById('frBtnRight'), () => frMove(1,0));
 
 (function() {
   let sx=0, sy=0;
