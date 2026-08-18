@@ -7,7 +7,7 @@
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8186763010470448"
      crossorigin="anonymous"></script>
 <meta name="google-adsense-account" content="ca-pub-8186763010470448">
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght=400;700;900&family=Space+Grotesk:wght=300;400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Space+Grotesk:wght@300;400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8186763010470448"
      crossorigin="anonymous"></script>
@@ -90,6 +90,26 @@ body.is-touch .touch-controls{display:flex}
 .tc-lr{display:flex;gap:8px}
 .tc-fire{width:80px;height:80px;border-radius:50%;background:rgba(224,64,80,.15);border:2px solid var(--danger);color:var(--danger);font-size:1.6rem;display:flex;align-items:center;justify-content:center;touch-action:none;-webkit-tap-highlight-color:transparent}
 .tc-fire:active,.tc-fire.pressed{background:rgba(224,64,80,.4)}
+/* Nuevo estilo para el botón de sonido */
+.sound-toggle {
+    background: none;
+    border: none;
+    color: var(--gold);
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0 8px;
+    transition: color 0.3s;
+    z-index: 25;
+}
+.sound-toggle:hover {
+    color: var(--gold-light);
+}
+.sound-toggle.muted {
+    color: var(--muted);
+}
+.sound-toggle.muted:hover {
+    color: var(--text);
+}
 </style>
 </head>
 <body>
@@ -132,6 +152,7 @@ body.is-touch .touch-controls{display:flex}
     <div class="hud-item"><div><div class="hud-label">NIVEL</div><div class="hud-value" id="hudLevel">1</div></div></div>
     <div class="hud-item"><div><div class="hud-label">VIDAS</div><div class="lives-display" id="hudLives"></div></div></div>
     <div class="hud-item"><div><div class="hud-label">MONEDAS</div><div class="hud-value" id="hudCoins"><i class="fas fa-coins" style="font-size:.7rem"></i> 0</div></div></div>
+    <button class="sound-toggle" id="soundTogglePacman" onclick="toggleSound('pacman')"><i class="fas fa-volume-up"></i></button>
   </div>
   <canvas id="gameCanvas"></canvas>
   <div class="touch-controls" style="justify-content:center">
@@ -180,6 +201,7 @@ body.is-touch .touch-controls{display:flex}
     <div class="hud-item"><div><div class="hud-label">OLEADA</div><div class="hud-value" id="invWave">1</div></div></div>
     <div class="hud-item"><div><div class="hud-label">VIDAS</div><div class="lives-display" id="invLives"></div></div></div>
     <div class="hud-item"><div><div class="hud-label">RECORD</div><div class="hud-value" id="invHi">0</div></div></div>
+    <button class="sound-toggle" id="soundToggleInvaders" onclick="toggleSound('invaders')"><i class="fas fa-volume-up"></i></button>
   </div>
   <canvas id="invCanvas" style="border:2px solid var(--gold-dark);border-radius:4px;background:#000;margin-top:10px"></canvas>
   <div class="touch-controls tc-shooter">
@@ -199,6 +221,7 @@ body.is-touch .touch-controls{display:flex}
     <div class="hud-item"><div><div class="hud-label">OLEADA</div><div class="hud-value" id="galWave">1</div></div></div>
     <div class="hud-item"><div><div class="hud-label">VIDAS</div><div class="lives-display" id="galLives"></div></div></div>
     <div class="hud-item"><div><div class="hud-label">RECORD</div><div class="hud-value" id="galHi">0</div></div></div>
+    <button class="sound-toggle" id="soundToggleGalaga" onclick="toggleSound('galaga')"><i class="fas fa-volume-up"></i></button>
   </div>
   <canvas id="galCanvas" style="border:2px solid var(--gold-dark);border-radius:4px;background:#000;margin-top:10px"></canvas>
   <div class="touch-controls tc-shooter">
@@ -218,6 +241,7 @@ body.is-touch .touch-controls{display:flex}
     <div class="hud-item"><div><div class="hud-label">NIVEL</div><div class="hud-value" id="arkLevel">1</div></div></div>
     <div class="hud-item"><div><div class="hud-label">VIDAS</div><div class="lives-display" id="arkLives"></div></div></div>
     <div class="hud-item"><div><div class="hud-label">RECORD</div><div class="hud-value" id="arkHi">0</div></div></div>
+    <button class="sound-toggle" id="soundToggleArkanoid" onclick="toggleSound('arkanoid')"><i class="fas fa-volume-up"></i></button>
   </div>
   <canvas id="arkCanvas" style="border:2px solid var(--gold-dark);border-radius:4px;background:#000;margin-top:10px"></canvas>
   <div class="touch-controls tc-shooter">
@@ -237,6 +261,7 @@ body.is-touch .touch-controls{display:flex}
     <div class="hud-item"><div><div class="hud-label">NIVEL</div><div class="hud-value" id="frLevel">1</div></div></div>
     <div class="hud-item"><div><div class="hud-label">VIDAS</div><div class="lives-display" id="frLives"></div></div></div>
     <div class="hud-item"><div><div class="hud-label">RECORD</div><div class="hud-value" id="frHi">0</div></div></div>
+    <button class="sound-toggle" id="soundToggleFrogger" onclick="toggleSound('frogger')"><i class="fas fa-volume-up"></i></button>
   </div>
   <canvas id="frCanvas" style="border:2px solid var(--gold-dark);border-radius:4px;background:#000;margin-top:10px"></canvas>
   <div class="touch-controls" style="justify-content:center">
@@ -257,6 +282,7 @@ body.is-touch .touch-controls{display:flex}
     <div class="hud-item"><div><div class="hud-label">NIVEL</div><div class="hud-value" id="rxLevel">1</div></div></div>
     <div class="hud-item"><div><div class="hud-label">VIDAS</div><div class="lives-display" id="rxLives"></div></div></div>
     <div class="hud-item"><div><div class="hud-label">RECORD</div><div class="hud-value" id="rxHi">0</div></div></div>
+    <button class="sound-toggle" id="soundToggleRallyx" onclick="toggleSound('rallyx')"><i class="fas fa-volume-up"></i></button>
   </div>
   <canvas id="rxCanvas" style="border:2px solid var(--gold-dark);border-radius:4px;background:#000;margin-top:10px"></canvas>
   <div class="touch-controls" style="justify-content:center">
@@ -285,6 +311,164 @@ body.is-touch .touch-controls{display:flex}
 </section>
 
 <script>
+// ========== SISTEMA DE SONIDO ==========
+// Crea contextos de audio y osciladores para sonidos sintéticos (IA)
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+// Estado de sonido por juego (true = activado)
+const soundState = {
+    pacman: true,
+    invaders: true,
+    galaga: true,
+    arkanoid: true,
+    frogger: true,
+    rallyx: true
+};
+
+// Actualiza los iconos de los botones según el estado
+function updateSoundIcons() {
+    const games = ['pacman', 'invaders', 'galaga', 'arkanoid', 'frogger', 'rallyx'];
+    games.forEach(game => {
+        const btn = document.getElementById('soundToggle' + game.charAt(0).toUpperCase() + game.slice(1));
+        if (btn) {
+            const icon = btn.querySelector('i');
+            if (soundState[game]) {
+                icon.className = 'fas fa-volume-up';
+                btn.classList.remove('muted');
+            } else {
+                icon.className = 'fas fa-volume-mute';
+                btn.classList.add('muted');
+            }
+        }
+    });
+}
+
+// Alterna el sonido de un juego
+function toggleSound(game) {
+    soundState[game] = !soundState[game];
+    updateSoundIcons();
+}
+
+// Reproduce un sonido si el juego tiene sonido activado
+function playSound(game, type) {
+    if (!soundState[game]) return;
+    try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        const now = audioCtx.currentTime;
+        gain.gain.setValueAtTime(0.12, now);
+
+        switch (type) {
+            case 'coin':
+                // Sonido de moneda (subida rápida)
+                osc.frequency.setValueAtTime(800, now);
+                osc.frequency.exponentialRampToValueAtTime(1200, now + 0.08);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+                osc.start(now);
+                osc.stop(now + 0.08);
+                break;
+            case 'powerup':
+                // Sonido de power-up (barrido ascendente)
+                osc.frequency.setValueAtTime(300, now);
+                osc.frequency.exponentialRampToValueAtTime(900, now + 0.15);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+                osc.start(now);
+                osc.stop(now + 0.15);
+                break;
+            case 'eat_ghost':
+                // Comer fantasma (descenso rápido)
+                osc.frequency.setValueAtTime(600, now);
+                osc.frequency.exponentialRampToValueAtTime(150, now + 0.12);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+                osc.start(now);
+                osc.stop(now + 0.12);
+                break;
+            case 'death':
+                // Muerte (descenso grave)
+                osc.frequency.setValueAtTime(400, now);
+                osc.frequency.exponentialRampToValueAtTime(80, now + 0.3);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+                osc.start(now);
+                osc.stop(now + 0.3);
+                break;
+            case 'shoot':
+                // Disparo (corto y agudo)
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(800, now);
+                osc.frequency.exponentialRampToValueAtTime(400, now + 0.06);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+                osc.start(now);
+                osc.stop(now + 0.06);
+                break;
+            case 'explosion':
+                // Explosión (ruido)
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, now);
+                osc.frequency.exponentialRampToValueAtTime(50, now + 0.25);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+                osc.start(now);
+                osc.stop(now + 0.25);
+                break;
+            case 'hit':
+                // Golpe (bajo)
+                osc.frequency.setValueAtTime(200, now);
+                osc.frequency.exponentialRampToValueAtTime(100, now + 0.08);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+                osc.start(now);
+                osc.stop(now + 0.08);
+                break;
+            case 'levelup':
+                // Subida de nivel (ascendente con tres tonos)
+                const notes = [523, 659, 784];
+                notes.forEach((freq, i) => {
+                    const o2 = audioCtx.createOscillator();
+                    const g2 = audioCtx.createGain();
+                    o2.connect(g2);
+                    g2.connect(audioCtx.destination);
+                    g2.gain.setValueAtTime(0.1, now + i * 0.1);
+                    g2.gain.exponentialRampToValueAtTime(0.001, now + i * 0.1 + 0.1);
+                    o2.frequency.setValueAtTime(freq, now + i * 0.1);
+                    o2.start(now + i * 0.1);
+                    o2.stop(now + i * 0.1 + 0.1);
+                });
+                return;
+            case 'gameover':
+                // Game Over (descendente)
+                osc.frequency.setValueAtTime(500, now);
+                osc.frequency.exponentialRampToValueAtTime(200, now + 0.5);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+                osc.start(now);
+                osc.stop(now + 0.5);
+                break;
+            case 'jump':
+                // Salto (Frogger)
+                osc.frequency.setValueAtTime(350, now);
+                osc.frequency.exponentialRampToValueAtTime(600, now + 0.06);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+                osc.start(now);
+                osc.stop(now + 0.06);
+                break;
+            case 'flag':
+                // Bandera (Rally-X)
+                osc.frequency.setValueAtTime(700, now);
+                osc.frequency.exponentialRampToValueAtTime(1100, now + 0.08);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+                osc.start(now);
+                osc.stop(now + 0.08);
+                break;
+            default:
+                osc.frequency.setValueAtTime(440, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+                osc.start(now);
+                osc.stop(now + 0.05);
+        }
+    } catch (e) { /* Silencio */ }
+}
+
+// ========== EL RESTO DEL CÓDIGO PERMANECE IGUAL ==========
 let activeGameLoop = null;
 let lbCurrentTab = 'pacman';
 let lbPendingGame = null;
@@ -384,6 +568,7 @@ function startGame() {
   initLevel();
   showScreen('gameScreen');
   updateHUD();
+  updateSoundIcons();
 }
 
 function initLevel() {
@@ -482,9 +667,11 @@ function movePacman() {
 
       if (dots[ny][nx] === 2) {
         dots[ny][nx] = 0; eatenDots++; score += 10; coins++;
+        playSound('pacman', 'coin');
         spawnParticles(nx*CELL+CELL/2, ny*CELL+CELL/2, '#f0d078', 3);
       } else if (dots[ny][nx] === 3) {
         dots[ny][nx] = 0; eatenDots++; score += 50; coins += 5;
+        playSound('pacman', 'powerup');
         activateFrightened();
         spawnParticles(nx*CELL+CELL/2, ny*CELL+CELL/2, '#ff4040', 8);
         addFloatingText(nx*CELL+CELL/2, ny*CELL, 'POWER!', '#ff4040');
@@ -606,10 +793,12 @@ function checkGhostCollision() {
       if (g.frightened && !g.eaten) {
         g.eaten = true; g.frightened = false;
         score += 200; coins += 20;
+        playSound('pacman', 'eat_ghost');
         spawnParticles(g.gx*CELL+CELL/2, g.gy*CELL+CELL/2, g.color, 12);
         addFloatingText(g.gx*CELL+CELL/2, g.gy*CELL, '+200', g.color);
       } else if (!g.eaten) {
         gameState = 'dying'; deathTimer = 90;
+        playSound('pacman', 'death');
       }
     }
   });
@@ -787,6 +976,7 @@ function gameLoop() {
         document.getElementById('goCoins').textContent=coins;
         document.getElementById('goLevel').textContent=level+1;
         showScreen('gameOverScreen'); 
+        playSound('pacman', 'gameover');
         offerAlias('pacman', score);
         return;
       }
@@ -812,6 +1002,7 @@ function gameLoop() {
         offerAlias('pacman', score);
         return;
       }
+      playSound('pacman', 'levelup');
       initLevel();
     }
   }
@@ -901,6 +1092,7 @@ function startInvaders() {
   showScreen('invadersScreen');
   invResize();
   if (!invState._looping) { invState._looping = true; invLoop(); }
+  updateSoundIcons();
 }
 
 function invUpdateHUD() {
@@ -914,6 +1106,7 @@ function invUpdateHUD() {
 function invFire() {
   if (invState.bullets.length >= 1 || !invState.player.alive || invState.phase !== 'playing') return;
   invState.bullets.push({ x: invState.player.x + invState.player.w / 2, y: invState.player.y, vy: -7, alive: true });
+  playSound('invaders', 'shoot');
 }
 
 function invEnemyFire() {
@@ -995,6 +1188,7 @@ function invUpdate() {
       if (b.x >= iv.x && b.x <= iv.x + 16 && b.y >= iv.y && b.y <= iv.y + 14) {
         iv.alive = false; b.alive = false; invState.score += iv.pts;
         if (invState.score > invState.hi) invState.hi = invState.score;
+        playSound('invaders', 'explosion');
         invSpawnExplosion(iv.x + 8, iv.y + 7, iv.type === 0 ? '#ff60d0' : iv.type === 1 ? '#40e0ff' : '#f0d078', 10);
         break;
       }
@@ -1008,6 +1202,7 @@ function invUpdate() {
     invState.enemyBullets.forEach(b => {
       if (b.alive && b.x >= p.x && b.x <= p.x + p.w && b.y >= p.y && b.y <= p.y + p.h) {
         b.alive = false; p.alive = false;
+        playSound('invaders', 'death');
         invSpawnExplosion(p.x + p.w / 2, p.y + p.h / 2, '#f0d078', 18);
         invState.flashTimer = 12; invState.deathTimer = 70;
       }
@@ -1034,6 +1229,7 @@ function invHitShield(b, fromEnemy) {
       if (blk.hp <= 0) continue;
       if (b.x >= blk.x && b.x <= blk.x + blk.w && b.y >= blk.y && b.y <= blk.y + blk.h) {
         b.alive = false; blk.hp--;
+        playSound('invaders', 'hit');
         invSpawnExplosion(blk.x + 3, blk.y + 4, '#40d870', 4);
         return;
       }
@@ -1100,7 +1296,7 @@ function invLoop() {
     invState.waveTimer--;
     if (invState.waveTimer <= 0) { invState.wave++; invInitWave(); }
   }
-  if (invState.phase === 'gameover' && !wasGameOver) { offerAlias('invaders', invState.score); }
+  if (invState.phase === 'gameover' && !wasGameOver) { playSound('invaders', 'gameover'); offerAlias('invaders', invState.score); }
   invDraw();
   requestAnimationFrame(invLoop);
 }
@@ -1174,6 +1370,7 @@ function startGalaga() {
   showScreen('galagaScreen');
   galResize();
   if (!gal._looping) { gal._looping = true; galLoop(); }
+  updateSoundIcons();
 }
 
 function galUpdateHUD() {
@@ -1187,6 +1384,7 @@ function galUpdateHUD() {
 function galFire() {
   if (gal.bullets.length>=2 || !gal.player.alive || gal.phase !== 'playing') return;
   gal.bullets.push({ x:gal.player.x+gal.player.w/2, y:gal.player.y, vy:-7, alive:true });
+  playSound('galaga', 'shoot');
 }
 
 function bezier2(p0,c,p2,t){
@@ -1264,18 +1462,18 @@ function galUpdate() {
       const cfg = GAL_TYPES[e.type];
       if (b.x>=e.x-cfg.w/2 && b.x<=e.x+cfg.w/2 && b.y>=e.y-cfg.h/2 && b.y<=e.y+cfg.h/2) {
         b.alive=false; e.hp--;
-        if (e.hp<=0) { e.alive=false; gal.score+=cfg.pts; if (gal.score>gal.hi) gal.hi=gal.score; galSpawnBoom(e.x,e.y,cfg.color); }
+        if (e.hp<=0) { e.alive=false; gal.score+=cfg.pts; if (gal.score>gal.hi) gal.hi=gal.score; playSound('galaga', 'explosion'); galSpawnBoom(e.x,e.y,cfg.color); }
         break;
       }
     }
   });
 
   if (p.alive && p.blink===0) {
-    gal.enemyBullets.forEach(b=>{ if(b.alive && b.x>=p.x && b.x<=p.x+p.w && b.y>=p.y && b.y<=p.y+p.h) { b.alive=false; galKillPlayer(); } });
+    gal.enemyBullets.forEach(b=>{ if(b.alive && b.x>=p.x && b.x<=p.x+p.w && b.y>=p.y && b.y<=p.y+p.h) { b.alive=false; playSound('galaga', 'death'); galKillPlayer(); } });
     gal.enemies.forEach(e=>{
       if (!e.alive || e.state!=='diving') return;
       const cfg=GAL_TYPES[e.type];
-      if (e.x+cfg.w/2>p.x && e.x-cfg.w/2<p.x+p.w && e.y+cfg.h/2>p.y && e.y-cfg.h/2<p.y+p.h) { e.alive=false; galKillPlayer(); }
+      if (e.x+cfg.w/2>p.x && e.x-cfg.w/2<p.x+p.w && e.y+cfg.h/2>p.y && e.y-cfg.h/2<p.y+p.h) { e.alive=false; playSound('galaga', 'death'); galKillPlayer(); }
     });
   }
 
@@ -1425,7 +1623,7 @@ function galLoop() {
       else { gal.player.alive=true; gal.player.blink=60; gal.player.x=GW/2-gal.player.w/2; gal.bullets=[]; gal.enemyBullets=[]; }
     }
   }
-  if (gal.phase === 'gameover' && !wasGameOver) { offerAlias('galaga', gal.score); }
+  if (gal.phase === 'gameover' && !wasGameOver) { playSound('galaga', 'gameover'); offerAlias('galaga', gal.score); }
   galDraw();
   requestAnimationFrame(galLoop);
 }
@@ -1494,6 +1692,7 @@ function startArkanoid() {
   showScreen('arkanoidScreen');
   arkResize();
   if (!ark._looping) { ark._looping = true; arkLoop(); }
+  updateSoundIcons();
 }
 
 function arkUpdateHUD() {
@@ -1561,6 +1760,7 @@ function arkUpdate() {
           brick.alive = false;
           ark.score += brick.pts;
           if (ark.score>ark.hi) ark.hi = ark.score;
+          playSound('arkanoid', 'hit');
           arkSpawnBoom(brick.x+brick.w/2, brick.y+brick.h/2, brick.color);
         }
         const overlapLeft = (b.x+b.r)-brick.x;
@@ -1650,6 +1850,7 @@ function arkLoop() {
   if (ark.deathTimer===1 && ark.phase==='playing') {
     ark.lives--;
     ark.flashTimer=12;
+    playSound('arkanoid', 'death');
     arkSpawnBoom(ark.ball.x, AH-20, '#f0d078', 14);
     if (ark.lives<=0) {
       ark.phase='gameover';
@@ -1663,12 +1864,13 @@ function arkLoop() {
   if (ark.phase==='levelup') {
     ark.levelUpTimer--;
     if (ark.levelUpTimer<=0) {
+      playSound('arkanoid', 'levelup');
       ark.level++;
       arkInitLevel();
     }
   }
 
-  if (ark.phase === 'gameover' && !wasGameOver) { offerAlias('arkanoid', ark.score); }
+  if (ark.phase === 'gameover' && !wasGameOver) { playSound('arkanoid', 'gameover'); offerAlias('arkanoid', ark.score); }
 
   arkDraw();
   requestAnimationFrame(arkLoop);
@@ -1855,6 +2057,7 @@ function startFrogger() {
   showScreen('froggerScreen');
   frResize();
   if (!frg._looping) { frg._looping = true; frLoop(); }
+  updateSoundIcons();
 }
 
 function frUpdateHUD() {
@@ -1881,9 +2084,11 @@ function frMove(dx,dy) {
       frg.score += 10;
       if (frg.score>frg.hi) frg.hi = frg.score;
     }
+    playSound('frogger', 'jump');
   }
   if (dx!==0) {
     frPlayer.x = Math.max(0, Math.min(FW-FTILE, frPlayer.x+dx*FTILE));
+    playSound('frogger', 'jump');
   }
 }
 
@@ -1891,6 +2096,7 @@ function frDie(reason) {
   if (frg.deathTimer>0 || frg.phase!=='playing') return;
   frg.deathTimer = 1;
   frg.flashTimer = 14;
+  playSound('frogger', 'death');
   frSpawnBoom(frPlayer.x+FTILE/2, frPlayer.row*FTILE+FTILE/2, reason==='water' ? '#40e0ff' : '#ff5050', 14);
 }
 
@@ -1939,6 +2145,7 @@ function frUpdate() {
       pad.occupied = true;
       frg.score += 50 + Math.floor(frg.timer/60)*2;
       if (frg.score>frg.hi) frg.hi = frg.score;
+      playSound('frogger', 'flag');
       frSpawnBoom(frPlayer.x+FTILE/2, FTILE/2, '#40d870', 12);
       if (frg.pads.every(p=>p.occupied)) {
         frg.phase='levelup'; frg.levelUpTimer=100;
@@ -2177,13 +2384,14 @@ function frLoop() {
   if (frg.phase==='levelup') {
     frg.levelUpTimer--;
     if (frg.levelUpTimer<=0) {
+      playSound('frogger', 'levelup');
       frg.level++;
       frInitLevel();
       frg.phase='ready'; frg.readyTimer=75;
     }
   }
 
-  if (frg.phase === 'gameover' && !wasGameOver) { offerAlias('frogger', frg.score); }
+  if (frg.phase === 'gameover' && !wasGameOver) { playSound('frogger', 'gameover'); offerAlias('frogger', frg.score); }
 
   frDraw();
   requestAnimationFrame(frLoop);
@@ -2312,6 +2520,7 @@ function startRallyX() {
   showScreen('rallyxScreen');
   rxResize();
   if (!rx._looping) { rx._looping = true; rxLoop(); }
+  updateSoundIcons();
 }
 
 function rxUpdateHUD() {
@@ -2326,6 +2535,7 @@ function rxDropSmoke() {
   if (rx.phase!=='playing' || rx.smokeCooldown>0) return;
   rx.smokes.push({ x: rxPlayer.x+rxPlayer.w/2, y: rxPlayer.y+rxPlayer.h/2, life:110 });
   rx.smokeCooldown = 100;
+  playSound('rallyx', 'shoot');
 }
 
 function rxPlayerUpdate() {
@@ -2365,6 +2575,7 @@ function rxDie(reason) {
   if (rx.deathTimer>0 || rx.phase!=='playing') return;
   rx.deathTimer = 1;
   rx.flashTimer = 14;
+  playSound('rallyx', 'death');
 }
 
 function rxUpdate() {
@@ -2392,6 +2603,7 @@ function rxUpdate() {
       const value = (f.special ? 500 : 100) * rx.level;
       rx.score += value;
       if (rx.score>rx.hi) rx.hi = rx.score;
+      playSound('rallyx', 'flag');
       rx.popups.push({ x:f.x, y:f.y-10, text:'+'+value, life:40, special:f.special });
     }
   });
@@ -2569,6 +2781,7 @@ function rxLoop() {
   if (rx.phase==='levelup') {
     rx.levelUpTimer--;
     if (rx.levelUpTimer<=0) {
+      playSound('rallyx', 'levelup');
       rx.level++;
       rxInitLevel();
       rx.phase='ready'; rx.readyTimer=75;
@@ -2576,7 +2789,7 @@ function rxLoop() {
   }
   rxDraw();
   rxUpdateHUD();
-  if (rx.phase === 'gameover' && !wasGameOver) { offerAlias('rallyx', rx.score); }
+  if (rx.phase === 'gameover' && !wasGameOver) { playSound('rallyx', 'gameover'); offerAlias('rallyx', rx.score); }
   requestAnimationFrame(rxLoop);
 }
 
