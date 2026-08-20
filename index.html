@@ -90,7 +90,6 @@ body.is-touch .touch-controls{display:flex}
 .tc-lr{display:flex;gap:8px}
 .tc-fire{width:80px;height:80px;border-radius:50%;background:rgba(224,64,80,.15);border:2px solid var(--danger);color:var(--danger);font-size:1.6rem;display:flex;align-items:center;justify-content:center;touch-action:none;-webkit-tap-highlight-color:transparent}
 .tc-fire:active,.tc-fire.pressed{background:rgba(224,64,80,.4)}
-/* Nuevo estilo para el botón de sonido */
 .sound-toggle {
     background: none;
     border: none;
@@ -138,6 +137,7 @@ body.is-touch .touch-controls{display:flex}
     <button class="btn" onclick="startArkanoid()"><i class="fas fa-th" style="margin-right:8px"></i>ARKANOID</button>
     <button class="btn" onclick="startFrogger()"><i class="fas fa-frog" style="margin-right:8px"></i>FROGGER</button>
     <button class="btn" onclick="startRallyX()"><i class="fas fa-flag-checkered" style="margin-right:8px"></i>RALLY-X</button>
+    <button class="btn" onclick="startGyrius()"><i class="fas fa-sync-alt" style="margin-right:8px"></i>GYRIUS</button>
     <button class="btn btn-ghost" style="margin-top:20px; width:100%" onclick="showLeaderboard()"><i class="fas fa-trophy" style="margin-right:8px"></i>RECORDS</button>
   </div>
   <p style="color:var(--muted);font-size:.75rem;margin-top:24px;letter-spacing:1px">Experiencia exclusiva de arcade clásico</p>
@@ -296,6 +296,27 @@ body.is-touch .touch-controls{display:flex}
   <div class="controls-hint"><i class="fas fa-keyboard"></i> FLECHAS / WASD mover — ESPACIO cortina de humo — P pausar</div>
 </section>
 
+<section id="gyriusScreen" class="screen">
+  <button class="back-link" onclick="exitToMenu()"><i class="fas fa-arrow-left"></i> Volver</button>
+  <div class="hud" style="max-width:480px">
+    <div class="hud-item"><div><div class="hud-label">PUNTOS</div><div class="hud-value" id="gyScore">0</div></div></div>
+    <div class="hud-item"><div><div class="hud-label">NIVEL</div><div class="hud-value" id="gyLevel">1</div></div></div>
+    <div class="hud-item"><div><div class="hud-label">VIDAS</div><div class="lives-display" id="gyLives"></div></div></div>
+    <div class="hud-item"><div><div class="hud-label">RECORD</div><div class="hud-value" id="gyHi">0</div></div></div>
+    <button class="sound-toggle" id="soundToggleGyrius" onclick="toggleSound('gyrius')"><i class="fas fa-volume-up"></i></button>
+  </div>
+  <canvas id="gyCanvas" style="border:2px solid var(--gold-dark);border-radius:4px;background:#000;margin-top:10px"></canvas>
+  <div class="touch-controls" style="justify-content:center">
+    <div class="tc-dpad">
+      <button class="tc-btn tc-up" id="gyBtnUp"><i class="fas fa-caret-up"></i></button>
+      <button class="tc-btn tc-left" id="gyBtnLeft"><i class="fas fa-caret-left"></i></button>
+      <button class="tc-btn tc-right" id="gyBtnRight"><i class="fas fa-caret-right"></i></button>
+      <button class="tc-btn tc-down" id="gyBtnDown"><i class="fas fa-caret-down"></i></button>
+    </div>
+  </div>
+  <div class="controls-hint"><i class="fas fa-keyboard"></i> FLECHAS / WASD mover — ESPACIO disparar — P pausar</div>
+</section>
+
 <section id="leaderboardScreen" class="screen">
   <button class="back-link" onclick="showScreen('startScreen')"><i class="fas fa-arrow-left"></i> Volver</button>
   <div class="title" style="font-size:2rem">RECORDS</div>
@@ -306,30 +327,30 @@ body.is-touch .touch-controls{display:flex}
     <button class="btn tab-btn" data-game="arkanoid" onclick="switchLBTab('arkanoid')">ARKANOID</button>
     <button class="btn tab-btn" data-game="frogger" onclick="switchLBTab('frogger')">FROGGER</button>
     <button class="btn tab-btn" data-game="rallyx" onclick="switchLBTab('rallyx')">RALLY-X</button>
+    <button class="btn tab-btn" data-game="gyrius" onclick="switchLBTab('gyrius')">GYRIUS</button>
   </div>
   <div class="leaderboard-list" id="lbList"></div>
 </section>
 
 <script>
 // ========== SISTEMA DE SONIDO ==========
-// Crea contextos de audio y osciladores para sonidos sintéticos (IA)
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-// Estado de sonido por juego (true = activado)
 const soundState = {
     pacman: true,
     invaders: true,
     galaga: true,
     arkanoid: true,
     frogger: true,
-    rallyx: true
+    rallyx: true,
+    gyrius: true
 };
 
-// Actualiza los iconos de los botones según el estado
 function updateSoundIcons() {
-    const games = ['pacman', 'invaders', 'galaga', 'arkanoid', 'frogger', 'rallyx'];
+    const games = ['pacman', 'invaders', 'galaga', 'arkanoid', 'frogger', 'rallyx', 'gyrius'];
     games.forEach(game => {
-        const btn = document.getElementById('soundToggle' + game.charAt(0).toUpperCase() + game.slice(1));
+        const id = 'soundToggle' + game.charAt(0).toUpperCase() + game.slice(1);
+        const btn = document.getElementById(id);
         if (btn) {
             const icon = btn.querySelector('i');
             if (soundState[game]) {
@@ -343,13 +364,11 @@ function updateSoundIcons() {
     });
 }
 
-// Alterna el sonido de un juego
 function toggleSound(game) {
     soundState[game] = !soundState[game];
     updateSoundIcons();
 }
 
-// Reproduce un sonido si el juego tiene sonido activado
 function playSound(game, type) {
     if (!soundState[game]) return;
     try {
@@ -363,7 +382,6 @@ function playSound(game, type) {
 
         switch (type) {
             case 'coin':
-                // Sonido de moneda (subida rápida)
                 osc.frequency.setValueAtTime(800, now);
                 osc.frequency.exponentialRampToValueAtTime(1200, now + 0.08);
                 gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
@@ -371,7 +389,6 @@ function playSound(game, type) {
                 osc.stop(now + 0.08);
                 break;
             case 'powerup':
-                // Sonido de power-up (barrido ascendente)
                 osc.frequency.setValueAtTime(300, now);
                 osc.frequency.exponentialRampToValueAtTime(900, now + 0.15);
                 gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
@@ -379,7 +396,6 @@ function playSound(game, type) {
                 osc.stop(now + 0.15);
                 break;
             case 'eat_ghost':
-                // Comer fantasma (descenso rápido)
                 osc.frequency.setValueAtTime(600, now);
                 osc.frequency.exponentialRampToValueAtTime(150, now + 0.12);
                 gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
@@ -387,7 +403,6 @@ function playSound(game, type) {
                 osc.stop(now + 0.12);
                 break;
             case 'death':
-                // Muerte (descenso grave)
                 osc.frequency.setValueAtTime(400, now);
                 osc.frequency.exponentialRampToValueAtTime(80, now + 0.3);
                 gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
@@ -395,7 +410,6 @@ function playSound(game, type) {
                 osc.stop(now + 0.3);
                 break;
             case 'shoot':
-                // Disparo (corto y agudo)
                 osc.type = 'square';
                 osc.frequency.setValueAtTime(800, now);
                 osc.frequency.exponentialRampToValueAtTime(400, now + 0.06);
@@ -404,7 +418,6 @@ function playSound(game, type) {
                 osc.stop(now + 0.06);
                 break;
             case 'explosion':
-                // Explosión (ruido)
                 osc.type = 'sawtooth';
                 osc.frequency.setValueAtTime(150, now);
                 osc.frequency.exponentialRampToValueAtTime(50, now + 0.25);
@@ -413,7 +426,6 @@ function playSound(game, type) {
                 osc.stop(now + 0.25);
                 break;
             case 'hit':
-                // Golpe (bajo)
                 osc.frequency.setValueAtTime(200, now);
                 osc.frequency.exponentialRampToValueAtTime(100, now + 0.08);
                 gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
@@ -421,7 +433,6 @@ function playSound(game, type) {
                 osc.stop(now + 0.08);
                 break;
             case 'levelup':
-                // Subida de nivel (ascendente con tres tonos)
                 const notes = [523, 659, 784];
                 notes.forEach((freq, i) => {
                     const o2 = audioCtx.createOscillator();
@@ -436,7 +447,6 @@ function playSound(game, type) {
                 });
                 return;
             case 'gameover':
-                // Game Over (descendente)
                 osc.frequency.setValueAtTime(500, now);
                 osc.frequency.exponentialRampToValueAtTime(200, now + 0.5);
                 gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
@@ -444,7 +454,6 @@ function playSound(game, type) {
                 osc.stop(now + 0.5);
                 break;
             case 'jump':
-                // Salto (Frogger)
                 osc.frequency.setValueAtTime(350, now);
                 osc.frequency.exponentialRampToValueAtTime(600, now + 0.06);
                 gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
@@ -452,7 +461,6 @@ function playSound(game, type) {
                 osc.stop(now + 0.06);
                 break;
             case 'flag':
-                // Bandera (Rally-X)
                 osc.frequency.setValueAtTime(700, now);
                 osc.frequency.exponentialRampToValueAtTime(1100, now + 0.08);
                 gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
@@ -500,6 +508,7 @@ function exitToMenu() {
   ark.phase = 'menu';
   frg.phase = 'menu';
   rx.phase = 'menu';
+  gy.phase = 'menu';
   showScreen('startScreen');
 }
 
@@ -1641,7 +1650,7 @@ let ark = {
   phase:'menu', readyTimer:80,
   paddle:null, ball:null, bricks:[], stars:[],
   particles:[], keys:{}, flashTimer:0, deathTimer:0, levelUpTimer:0,
-  tick:0, _looping:false
+  tick:0, _looping:false, levelKills:0, levelTarget:8
 };
 
 function arkBuildBricks(level) {
@@ -1935,6 +1944,18 @@ document.addEventListener('keydown', e => {
     if (e.key==='p'||e.key==='P') { rx.phase = (rx.phase === 'playing') ? 'paused' : (rx.phase==='paused' ? 'playing' : rx.phase); }
     if (e.key==='Enter' && rx.phase==='gameover') { rxReset(); }
   }
+
+  if (activeGameLoop === 'gyrius') {
+    if (gy.phase==='playing') {
+      if (e.key==='ArrowUp'||e.key==='w'||e.key==='W') { gyPlayer.keys.up=true; e.preventDefault(); }
+      if (e.key==='ArrowDown'||e.key==='s'||e.key==='S') { gyPlayer.keys.down=true; e.preventDefault(); }
+      if (e.key==='ArrowLeft'||e.key==='a'||e.key==='A') { gyPlayer.keys.left=true; e.preventDefault(); }
+      if (e.key==='ArrowRight'||e.key==='d'||e.key==='D') { gyPlayer.keys.right=true; e.preventDefault(); }
+      if (e.key===' ') { gyFire(); e.preventDefault(); }
+    }
+    if (e.key==='p'||e.key==='P') { gy.phase = (gy.phase === 'playing') ? 'paused' : (gy.phase==='paused' ? 'playing' : gy.phase); }
+    if (e.key==='Enter' && gy.phase==='gameover') { gyReset(); }
+  }
 });
 
 document.addEventListener('keyup', e => {
@@ -1955,6 +1976,12 @@ document.addEventListener('keyup', e => {
     if (e.key==='ArrowDown'||e.key==='s'||e.key==='S') rxPlayer.keys.down=false;
     if (e.key==='ArrowLeft'||e.key==='a'||e.key==='A') rxPlayer.keys.left=false;
     if (e.key==='ArrowRight'||e.key==='d'||e.key==='D') rxPlayer.keys.right=false;
+  }
+  if (activeGameLoop === 'gyrius') {
+    if (e.key==='ArrowUp'||e.key==='w'||e.key==='W') gyPlayer.keys.up=false;
+    if (e.key==='ArrowDown'||e.key==='s'||e.key==='S') gyPlayer.keys.down=false;
+    if (e.key==='ArrowLeft'||e.key==='a'||e.key==='A') gyPlayer.keys.left=false;
+    if (e.key==='ArrowRight'||e.key==='d'||e.key==='D') gyPlayer.keys.right=false;
   }
 });
 
@@ -1978,7 +2005,7 @@ function arkResize() {
   const scale=Math.min(maxW/AW, maxH/AH, 1);
   arkCanvas.style.width=(AW*scale)+'px'; arkCanvas.style.height=(AH*scale)+'px';
 }
-window.addEventListener('resize', () => { resizeGameCanvas(); invResize(); galResize(); arkResize(); frResize(); rxResize(); });
+window.addEventListener('resize', () => { resizeGameCanvas(); invResize(); galResize(); arkResize(); frResize(); rxResize(); gyResize(); });
 resizeGameCanvas();
 
 /* ===== FROGGER ===== */
@@ -2799,6 +2826,375 @@ function rxResize() {
   rxCanvas.style.width=(RXW*scale)+'px'; rxCanvas.style.height=(RXH*scale)+'px';
 }
 
+/* ===== GYRIUS (CORREGIDO) ===== */
+const gyCanvas = document.getElementById('gyCanvas');
+const gyctx = gyCanvas.getContext('2d');
+const GYW = 480, GYH = 560;
+gyCanvas.width = GYW; gyCanvas.height = GYH;
+
+let gy = {
+  score:0, hi:0, level:1, lives:3,
+  phase:'menu', readyTimer:75, levelUpTimer:0,
+  player:null, bullets:[], enemyBullets:[], enemies:[], stars:[],
+  particles:[], flashTimer:0, deathTimer:0,
+  enemySpawnTimer:0, enemySpawnDelay:80,
+  tick:0, _looping:false
+};
+let gyPlayer = { x:0, y:0, w:24, h:24, keys:{up:false,down:false,left:false,right:false}, angle:0 };
+
+function gyInitLevel() {
+  gy.enemies = [];
+  gy.bullets = [];
+  gy.enemyBullets = [];
+  gy.particles = [];
+  gy.enemySpawnTimer = 0;
+  gy.levelKills = 0;
+  gy.levelTarget = 8 + (gy.level-1)*3;
+  gy.enemySpawnDelay = Math.max(30, 80 - (gy.level-1)*8);
+  gy.phase = 'ready';
+  gy.readyTimer = 75;
+  gy.deathTimer = 0;
+  gy.flashTimer = 0;
+  gyPlayer.x = GYW/2 - gyPlayer.w/2;
+  gyPlayer.y = GYH - 80;
+  if (gy.stars.length===0) {
+    for (let i=0;i<60;i++) gy.stars.push({x:Math.random()*GYW,y:Math.random()*GYH,s:Math.random()*1.4+.3,a:Math.random()*.4+.1});
+  }
+}
+
+function gyReset() {
+  gy.score=0; gy.level=1; gy.lives=3;
+  gyPlayer.keys={up:false,down:false,left:false,right:false};
+  gyInitLevel();
+}
+
+function startGyrius() {
+  activeGameLoop = 'gyrius';
+  gyReset();
+  showScreen('gyriusScreen');
+  gyResize();
+  gyUpdateHUD();
+  if (!gy._looping) { gy._looping = true; gyLoop(); }
+  updateSoundIcons();
+}
+
+function gyUpdateHUD() {
+  document.getElementById('gyScore').textContent = gy.score;
+  document.getElementById('gyLevel').textContent = gy.level;
+  document.getElementById('gyHi').textContent = gy.hi;
+  let l=''; for(let i=0;i<3;i++) l+=`<div class="life-icon ${i<gy.lives?'':'lost'}"></div>`;
+  document.getElementById('gyLives').innerHTML = l;
+}
+
+function gyFire() {
+  if (gy.phase!=='playing' || gy.bullets.length>=8) return;
+  const cx = gyPlayer.x + gyPlayer.w/2;
+  const cy = gyPlayer.y + gyPlayer.h/2;
+  gy.bullets.push({ x:cx-6, y:cy-12, vx:0, vy:-5, alive:true });
+  gy.bullets.push({ x:cx+6, y:cy-12, vx:0, vy:-5, alive:true });
+  playSound('gyrius', 'shoot');
+}
+
+function gySpawnBoom(x,y,color,n=10) {
+  for (let i=0;i<n;i++) {
+    const a=Math.random()*Math.PI*2, sp=Math.random()*2+.5;
+    gy.particles.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,life:20+Math.random()*10,max:30,color,r:Math.random()*2+1});
+  }
+}
+
+function gyKillPlayer() {
+  if (gy.deathTimer>0) return;
+  gy.deathTimer = 1;
+  gy.flashTimer=14;
+  gySpawnBoom(gyPlayer.x+gyPlayer.w/2, gyPlayer.y+gyPlayer.h/2, '#f0d078', 18);
+}
+
+function gyUpdate() {
+  gy.tick++;
+  gy.stars.forEach(s=>{ s.y+=s.s*0.3; if(s.y>GYH){s.y=0;s.x=Math.random()*GYW;} });
+  if (gy.flashTimer>0) gy.flashTimer--;
+
+  if (gy.phase==='ready') { gy.readyTimer--; if(gy.readyTimer<=0) gy.phase='playing'; return; }
+  if (gy.phase!=='playing') return;
+
+  const spd = 3.2;
+  let dx=0, dy=0;
+  if (gyPlayer.keys.left) dx=-spd;
+  if (gyPlayer.keys.right) dx=spd;
+  if (gyPlayer.keys.up) dy=-spd;
+  if (gyPlayer.keys.down) dy=spd;
+  if (dx!==0 || dy!==0) {
+    gyPlayer.angle = Math.atan2(dy, dx);
+  }
+  gyPlayer.x += dx;
+  gyPlayer.y += dy;
+  if (gyPlayer.x<4) gyPlayer.x=4;
+  if (gyPlayer.x+gyPlayer.w>GYW-4) gyPlayer.x=GYW-4-gyPlayer.w;
+  if (gyPlayer.y<4) gyPlayer.y=4;
+  if (gyPlayer.y+gyPlayer.h>GYH-4) gyPlayer.y=GYH-4-gyPlayer.h;
+
+  gy.enemySpawnTimer++;
+  if (gy.enemySpawnTimer>=gy.enemySpawnDelay) {
+    gy.enemySpawnTimer=0;
+    const side = Math.random()<0.5 ? -1 : 1;
+    const x = side<0 ? -20 : GYW+20;
+    const y = 20 + Math.random()*(GYH-100);
+    const speed = 1.2 + gy.level*0.15;
+    const type = Math.random()<0.2+gy.level*0.02 ? 'tank' : 'basic';
+    const hp = type==='tank' ? 2 : 1;
+    const pts = type==='tank' ? 30 : 10;
+    gy.enemies.push({
+      x, y, w:22, h:22, vx: -side*speed, vy: (Math.random()-0.5)*0.6,
+      type, hp, maxHp: hp, pts,
+      shootTimer: 60 + Math.random()*80,
+      alive: true
+    });
+  }
+
+  gy.enemies.forEach(e=>{
+    if (!e.alive) return;
+    e.x += e.vx;
+    e.y += e.vy;
+    if (e.x<-30 || e.x>GYW+30) { e.alive=false; return; }
+    if (e.y<10) { e.y=10; e.vy=Math.abs(e.vy); }
+    if (e.y>GYH-10) { e.y=GYH-10; e.vy=-Math.abs(e.vy); }
+
+    e.shootTimer--;
+    if (e.shootTimer<=0 && e.y>20 && e.y<GYH-40) {
+      e.shootTimer = 60 + Math.random()*60;
+      const dx = (gyPlayer.x+gyPlayer.w/2) - e.x;
+      const dy = (gyPlayer.y+gyPlayer.h/2) - e.y;
+      const dist = Math.hypot(dx, dy);
+      if (dist>0) {
+        gy.enemyBullets.push({
+          x:e.x, y:e.y+10, vx: (dx/dist)*1.8, vy: (dy/dist)*1.8,
+          alive:true
+        });
+      }
+    }
+  });
+
+  gy.enemies = gy.enemies.filter(e=>e.alive);
+
+  gy.bullets.forEach(b=>{ b.y += b.vy; });
+  gy.bullets = gy.bullets.filter(b=>b.alive && b.y>-20);
+
+  gy.enemyBullets.forEach(b=>{ b.x += b.vx; b.y += b.vy; });
+  gy.enemyBullets = gy.enemyBullets.filter(b=>b.alive && b.x>-20 && b.x<GYW+20 && b.y>-20 && b.y<GYH+20);
+
+  gy.bullets.forEach(b=>{
+    if (!b.alive) return;
+    for (const e of gy.enemies) {
+      if (!e.alive) continue;
+      if (b.x>=e.x-10 && b.x<=e.x+10 && b.y>=e.y-10 && b.y<=e.y+10) {
+        b.alive=false;
+        e.hp--;
+        if (e.hp<=0) {
+          e.alive=false;
+          gy.score += e.pts;
+          gy.levelKills++;
+          if (gy.score>gy.hi) gy.hi=gy.score;
+          playSound('gyrius', 'explosion');
+          gySpawnBoom(e.x, e.y, '#ff8050', 12);
+        } else {
+          playSound('gyrius', 'hit');
+        }
+        break;
+      }
+    }
+  });
+
+  gy.enemyBullets.forEach(b=>{
+    if (!b.alive) return;
+    if (b.x>=gyPlayer.x && b.x<=gyPlayer.x+gyPlayer.w &&
+        b.y>=gyPlayer.y && b.y<=gyPlayer.y+gyPlayer.h) {
+      b.alive=false;
+      playSound('gyrius', 'death');
+      gyKillPlayer();
+    }
+  });
+
+  gy.enemies.forEach(e=>{
+    if (!e.alive) return;
+    if (e.x+10>gyPlayer.x && e.x-10<gyPlayer.x+gyPlayer.w &&
+        e.y+10>gyPlayer.y && e.y-10<gyPlayer.y+gyPlayer.h) {
+      e.alive=false;
+      playSound('gyrius', 'death');
+      gySpawnBoom(e.x, e.y, '#ff8050', 12);
+      gyKillPlayer();
+    }
+  });
+
+  gy.particles = gy.particles.filter(pt=>{ pt.x+=pt.vx; pt.y+=pt.vy; pt.vy+=0.05; pt.life--; return pt.life>0; });
+
+  if (gy.levelKills >= gy.levelTarget && gy.phase==='playing') {
+    gy.phase='levelup';
+    gy.levelUpTimer=100;
+  }
+
+  gyUpdateHUD();
+}
+
+function gyDraw() {
+  gyctx.fillStyle='#05080f'; gyctx.fillRect(0,0,GYW,GYH);
+  gy.stars.forEach(s=>{ gyctx.fillStyle=`rgba(200,200,255,${s.a})`; gyctx.fillRect(s.x,s.y,s.s,s.s); });
+
+  if (gy.flashTimer>0) { gyctx.fillStyle=`rgba(255,60,60,${gy.flashTimer/14*0.3})`; gyctx.fillRect(0,0,GYW,GYH); }
+
+  gyctx.fillStyle = '#00b8ff';
+  gyctx.shadowColor = '#00b8ff';
+  gyctx.shadowBlur = 6;
+  gyctx.fillRect(gyPlayer.x+4, gyPlayer.y-4, 4, 4);
+  gyctx.fillRect(gyPlayer.x+gyPlayer.w-8, gyPlayer.y-4, 4, 4);
+
+  gyctx.save();
+  gyctx.translate(gyPlayer.x+gyPlayer.w/2, gyPlayer.y+gyPlayer.h/2);
+  gyctx.rotate(gyPlayer.angle);
+  gyctx.shadowBlur = 10;
+  gyctx.fillStyle = '#40e0ff';
+  gyctx.beginPath();
+  gyctx.moveTo(0, -gyPlayer.h/2-2);
+  gyctx.lineTo(gyPlayer.w/2, gyPlayer.h/2-4);
+  gyctx.lineTo(gyPlayer.w/3, gyPlayer.h/2);
+  gyctx.lineTo(0, gyPlayer.h/2-4);
+  gyctx.lineTo(-gyPlayer.w/3, gyPlayer.h/2);
+  gyctx.lineTo(-gyPlayer.w/2, gyPlayer.h/2-4);
+  gyctx.closePath();
+  gyctx.fill();
+  gyctx.fillStyle = '#00a0d0';
+  gyctx.beginPath();
+  gyctx.arc(0, 0, 5, 0, Math.PI*2);
+  gyctx.fill();
+  gyctx.shadowBlur = 0;
+  gyctx.restore();
+
+  gyctx.shadowBlur = 0;
+  gy.bullets.forEach(b=>{
+    const grad = gyctx.createLinearGradient(b.x, b.y-8, b.x, b.y+2);
+    grad.addColorStop(0,'rgba(80,220,255,0)');
+    grad.addColorStop(1,'#80e8ff');
+    gyctx.fillStyle=grad;
+    gyctx.fillRect(b.x-1.5, b.y-8, 3, 10);
+  });
+
+  gy.enemyBullets.forEach(b=>{
+    gyctx.fillStyle='#ff6040';
+    gyctx.shadowColor='#ff6040';
+    gyctx.shadowBlur=8;
+    gyctx.beginPath();
+    gyctx.arc(b.x, b.y, 3, 0, Math.PI*2);
+    gyctx.fill();
+    gyctx.shadowBlur=0;
+  });
+
+  gy.enemies.forEach(e=>{
+    if (!e.alive) return;
+    const col = e.type==='tank' ? '#e04060' : '#f0a030';
+    const dark = e.type==='tank' ? '#802030' : '#805010';
+    gyctx.shadowColor = col;
+    gyctx.shadowBlur = 6;
+    gyctx.fillStyle = dark;
+    gyctx.fillRect(e.x-2, e.y-2, e.w+4, e.h+4);
+    gyctx.fillStyle = col;
+    gyctx.beginPath();
+    gyctx.moveTo(e.x+3, e.y+3);
+    gyctx.lineTo(e.x+e.w/2, e.y-2);
+    gyctx.lineTo(e.x+e.w-3, e.y+3);
+    gyctx.lineTo(e.x+e.w-6, e.y+e.h-4);
+    gyctx.lineTo(e.x+6, e.y+e.h-4);
+    gyctx.closePath();
+    gyctx.fill();
+    if (e.type==='tank') {
+      gyctx.fillStyle = '#fff';
+      gyctx.shadowBlur = 4;
+      gyctx.fillRect(e.x+e.w/2-4, e.y-4, 8, 3);
+    }
+    gyctx.shadowBlur = 0;
+    gyctx.fillStyle = '#fff';
+    gyctx.beginPath();
+    gyctx.arc(e.x+6, e.y+6, 2, 0, Math.PI*2);
+    gyctx.arc(e.x+e.w-6, e.y+6, 2, 0, Math.PI*2);
+    gyctx.fill();
+  });
+
+  gy.particles.forEach(pt=>{
+    gyctx.globalAlpha=pt.life/pt.max;
+    gyctx.fillStyle=pt.color;
+    gyctx.fillRect(pt.x-pt.r/2, pt.y-pt.r/2, pt.r, pt.r);
+  });
+  gyctx.globalAlpha=1;
+
+  if (gy.phase==='ready') {
+    gyctx.fillStyle='rgba(0,0,0,.55)'; gyctx.fillRect(0,0,GYW,GYH);
+    gyctx.fillStyle='#f0d078'; gyctx.font="bold 22px 'Orbitron'"; gyctx.textAlign='center';
+    gyctx.fillText('GYRIUS', GYW/2, GYH/2-8);
+    gyctx.font="14px 'Orbitron'"; gyctx.fillStyle='#888';
+    gyctx.fillText('Nivel '+gy.level, GYW/2, GYH/2+18);
+  }
+  if (gy.phase==='paused') {
+    gyctx.fillStyle='rgba(0,0,0,.65)'; gyctx.fillRect(0,0,GYW,GYH);
+    gyctx.fillStyle='#f0d078'; gyctx.font="bold 28px 'Orbitron'"; gyctx.textAlign='center';
+    gyctx.fillText('PAUSA', GYW/2, GYH/2);
+  }
+  if (gy.phase==='levelup') {
+    gyctx.fillStyle=`rgba(0,0,0,${Math.min(0.7,(100-gy.levelUpTimer)/100*0.7)})`; gyctx.fillRect(0,0,GYW,GYH);
+    gyctx.fillStyle='#40d870'; gyctx.font="bold 20px 'Orbitron'"; gyctx.textAlign='center';
+    gyctx.fillText('NIVEL '+gy.level+' SUPERADO', GYW/2, GYH/2);
+  }
+  if (gy.phase==='gameover') {
+    gyctx.fillStyle='rgba(0,0,0,.7)'; gyctx.fillRect(0,0,GYW,GYH);
+    gyctx.fillStyle='#e04050'; gyctx.font="bold 28px 'Orbitron'"; gyctx.textAlign='center';
+    gyctx.fillText('GAME OVER', GYW/2, GYH/2-20);
+    gyctx.fillStyle='#f0d078'; gyctx.font="16px 'Orbitron'";
+    gyctx.fillText('PUNTOS: '+gy.score, GYW/2, GYH/2+10);
+  }
+}
+
+function gyLoop() {
+  if (activeGameLoop !== 'gyrius') { gy._looping = false; return; }
+  const wasGameOver = gy.phase === 'gameover';
+
+  if (gy.phase==='playing' || gy.phase==='ready') gyUpdate();
+
+  if (gy.deathTimer===1 && gy.phase==='playing') {
+    gy.lives--;
+    if (gy.lives<=0) {
+      gy.phase='gameover';
+    } else {
+      gyPlayer.x = GYW/2 - gyPlayer.w/2;
+      gyPlayer.y = GYH - 80;
+      gy.bullets = [];
+      gy.enemyBullets = [];
+      gy.enemies = [];
+      gy.enemySpawnTimer = -Math.floor(gy.enemySpawnDelay/2);
+    }
+    gy.deathTimer=0;
+  }
+
+  if (gy.phase==='levelup') {
+    gy.levelUpTimer--;
+    if (gy.levelUpTimer<=0) {
+      playSound('gyrius', 'levelup');
+      gy.level++;
+      gyInitLevel();
+    }
+  }
+
+  if (gy.phase === 'gameover' && !wasGameOver) {
+    playSound('gyrius', 'gameover');
+    offerAlias('gyrius', gy.score);
+  }
+
+  gyDraw();
+  requestAnimationFrame(gyLoop);
+}
+
+function gyResize() {
+  const maxW=window.innerWidth-20, maxH=window.innerHeight-140;
+  const scale=Math.min(maxW/GYW, maxH/GYH, 1);
+  gyCanvas.style.width=(GYW*scale)+'px'; gyCanvas.style.height=(GYH*scale)+'px';
+}
+
 function getLB(game) {
   try { return JSON.parse(localStorage.getItem('lb_'+game) || '[]'); }
   catch(e) { return []; }
@@ -2915,6 +3311,17 @@ bindHold(document.getElementById('rxBtnLeft'),
   () => rxPlayer.keys.left = true, () => rxPlayer.keys.left = false);
 bindHold(document.getElementById('rxBtnRight'),
   () => rxPlayer.keys.right = true, () => rxPlayer.keys.right = false);
+
+bindHold(document.getElementById('gyBtnUp'),
+  () => { if (gy.phase==='gameover') gyReset(); else gyPlayer.keys.up = true; }, () => gyPlayer.keys.up = false);
+bindHold(document.getElementById('gyBtnDown'),
+  () => gyPlayer.keys.down = true, () => gyPlayer.keys.down = false);
+bindHold(document.getElementById('gyBtnLeft'),
+  () => gyPlayer.keys.left = true, () => gyPlayer.keys.left = false);
+bindHold(document.getElementById('gyBtnRight'),
+  () => gyPlayer.keys.right = true, () => gyPlayer.keys.right = false);
+// Disparo táctil para Gyrius
+document.getElementById('gyCanvas').addEventListener('touchstart', e=>{ e.preventDefault(); if(activeGameLoop==='gyrius') gyFire(); }, {passive:false});
 
 (function() {
   let sx=0, sy=0;
