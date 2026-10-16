@@ -175,6 +175,7 @@ body.is-touch .touch-controls{display:flex}
     <button class="btn" onclick="startRallyX()"><i class="fas fa-flag-checkered" style="margin-right:8px"></i>RALLY-X</button>
     <button class="btn" onclick="startGyrius()"><i class="fas fa-sync-alt" style="margin-right:8px"></i>GYRIUS</button>
     <button class="btn" onclick="startTetris()"><i class="fas fa-th-large" style="margin-right:8px"></i>TETRIS</button>
+    <button class="btn" onclick="startPong()"><i class="fas fa-table-tennis" style="margin-right:8px"></i>PONG</button>
     <button class="btn btn-ghost" style="margin-top:20px; width:100%" onclick="showLeaderboard()"><i class="fas fa-trophy" style="margin-right:8px"></i>RECORDS</button>
   </div>
   <p style="color:var(--muted);font-size:.75rem;margin-top:24px;letter-spacing:1px">Experiencia exclusiva de arcade clásico</p>
@@ -386,6 +387,30 @@ body.is-touch .touch-controls{display:flex}
   <div class="controls-hint"><i class="fas fa-keyboard"></i> FLECHAS mover — ARRIBA rotar — ESPACIO caída — P pausar</div>
 </section>
 
+<!-- Pong -->
+<section id="pongScreen" class="screen">
+  <button class="back-link" onclick="exitToMenu()"><i class="fas fa-arrow-left"></i> Volver</button>
+  <div id="pongMenu" style="display:flex;flex-direction:column;align-items:center;gap:14px;padding:0 20px;text-align:center">
+    <div class="title" style="font-size:clamp(2rem,6vw,3.5rem)">PONG</div>
+    <div class="hud-label" style="font-size:.7rem;letter-spacing:3px">UN JUGADOR VS CPU</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center">
+      <button class="btn tab-btn" onclick="pongBegin(1,'easy')">FACIL</button>
+      <button class="btn tab-btn" onclick="pongBegin(1,'normal')">NORMAL</button>
+      <button class="btn tab-btn" onclick="pongBegin(1,'hard')">DIFICIL</button>
+    </div>
+    <div class="hud-label" style="font-size:.7rem;letter-spacing:3px;margin-top:10px">DOS JUGADORES</div>
+    <button class="btn tab-btn" onclick="pongBegin(2)"><i class="fas fa-user-friends" style="margin-right:8px"></i>HUMANO VS HUMANO</button>
+    <div class="controls-hint" style="margin-top:16px;line-height:1.8">J1: W / S &nbsp;&nbsp; J2: FLECHAS ARRIBA / ABAJO<br>Gana el primero en llegar a 7</div>
+  </div>
+  <div class="hud" id="pongHud" style="max-width:600px;display:none">
+    <div class="hud-item"><div><div class="hud-label">J1</div><div class="hud-value" id="pongS1">0</div></div></div>
+    <div class="hud-item"><div><div class="hud-label" id="pongLbl2">J2</div><div class="hud-value" id="pongS2">0</div></div></div>
+    <button class="sound-toggle" id="soundTogglePong" onclick="toggleSound('pong')"><i class="fas fa-volume-up"></i></button>
+  </div>
+  <canvas id="pongCanvas" style="display:none;border:2px solid var(--gold-dark);border-radius:4px;background:#000;margin-top:10px"></canvas>
+  <div class="controls-hint" id="pongHint" style="display:none"></div>
+</section>
+
 <section id="leaderboardScreen" class="screen">
   <button class="back-link" onclick="showScreen('startScreen')"><i class="fas fa-arrow-left"></i> Volver</button>
   <div class="title" style="font-size:2rem">RECORDS</div>
@@ -414,11 +439,12 @@ const soundState = {
     frogger: true,
     rallyx: true,
     gyrius: true,
-    tetris: true
+    tetris: true,
+    pong: true
 };
 
 function updateSoundIcons() {
-    const games = ['pacman', 'invaders', 'galaga', 'arkanoid', 'frogger', 'rallyx', 'gyrius', 'tetris'];
+    const games = ['pacman', 'invaders', 'galaga', 'arkanoid', 'frogger', 'rallyx', 'gyrius', 'tetris', 'pong'];
     games.forEach(game => {
         const id = 'soundToggle' + game.charAt(0).toUpperCase() + game.slice(1);
         const btn = document.getElementById(id);
@@ -3764,6 +3790,294 @@ function tetResize() {
 }
 window.addEventListener('resize', () => { resizeGameCanvas(); invResize(); galResize(); arkResize(); frResize(); rxResize(); gyResize(); tetResize(); });
 resizeGameCanvas(); invResize(); galResize(); arkResize(); frResize(); rxResize(); gyResize(); tetResize();
+
+// ===== PONG =====
+(function() {
+  const PW = 600, PH = 400, PAD_W = 12, PAD_H = 80, BALL_R = 7, WIN_SCORE = 7;
+  const PAD_SPEED = 440, BALL_START = 330, BALL_MAX = 760;
+  const P1X = 20, P2X = PW - 20 - PAD_W;
+  const AI_LEVELS = {
+    easy:   { speed: 220, err: 60, zone: 0.5 },
+    normal: { speed: 330, err: 34, zone: 0.3 },
+    hard:   { speed: 440, err: 12, zone: 0 }
+  };
+
+  const cv = document.getElementById('pongCanvas');
+  const ctx = cv.getContext('2d');
+  cv.width = PW; cv.height = PH;
+
+  const st = {
+    mode: 1, level: 'normal', phase: 'menu',
+    s1: 0, s2: 0, winner: 0, readyT: 0, aiErr: 0,
+    p1: { y: (PH - PAD_H) / 2 }, p2: { y: (PH - PAD_H) / 2 },
+    ball: { x: PW / 2, y: PH / 2, vx: 0, vy: 0, speed: BALL_START },
+    trail: [], keys: {}, last: 0, _looping: false
+  };
+
+  function beep(freq, dur, type) {
+    if (!soundState.pong) return;
+    try {
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.type = type || 'square';
+      o.connect(g); g.connect(audioCtx.destination);
+      const n = audioCtx.currentTime;
+      o.frequency.setValueAtTime(freq, n);
+      g.gain.setValueAtTime(0.08, n);
+      g.gain.exponentialRampToValueAtTime(0.001, n + dur);
+      o.start(n); o.stop(n + dur);
+    } catch (e) { /* Silencio */ }
+  }
+
+  function updateHUD() {
+    document.getElementById('pongS1').textContent = st.s1;
+    document.getElementById('pongS2').textContent = st.s2;
+    document.getElementById('pongLbl2').textContent = st.mode === 1 ? 'CPU' : 'J2';
+  }
+
+  function serve(dir) {
+    const b = st.ball;
+    b.x = PW / 2; b.y = PH / 2; b.speed = BALL_START;
+    const ang = (Math.random() * 2 - 1) * (Math.PI / 7);
+    b.vx = dir * b.speed * Math.cos(ang);
+    b.vy = b.speed * Math.sin(ang);
+    st.trail = [];
+    st.readyT = 1.0;
+    st.phase = 'ready';
+  }
+
+  function resetMatch() {
+    st.s1 = 0; st.s2 = 0; st.winner = 0; st.aiErr = 0;
+    st.p1.y = (PH - PAD_H) / 2; st.p2.y = (PH - PAD_H) / 2;
+    updateHUD();
+    serve(Math.random() < 0.5 ? 1 : -1);
+  }
+
+  function setVisible(game) {
+    document.getElementById('pongMenu').style.display = game ? 'none' : 'flex';
+    document.getElementById('pongHud').style.display = game ? 'flex' : 'none';
+    cv.style.display = game ? 'block' : 'none';
+    document.getElementById('pongHint').style.display = game ? 'block' : 'none';
+  }
+
+  function showMenu() {
+    st.phase = 'menu';
+    st.keys = {};
+    setVisible(false);
+  }
+
+  function resize() {
+    const maxW = window.innerWidth - 20, maxH = window.innerHeight - 140;
+    const scale = Math.min(maxW / PW, maxH / PH, 1.25);
+    cv.style.width = (PW * scale) + 'px';
+    cv.style.height = (PH * scale) + 'px';
+  }
+
+  window.startPong = function() {
+    activeGameLoop = 'pong';
+    showMenu();
+    showScreen('pongScreen');
+    resize();
+    if (!st._looping) { st._looping = true; st.last = performance.now(); requestAnimationFrame(loop); }
+    updateSoundIcons();
+  };
+
+  window.pongBegin = function(mode, level) {
+    st.mode = mode;
+    if (level) st.level = level;
+    document.getElementById('pongHint').innerHTML = '<i class="fas fa-keyboard"></i> ' + (mode === 1
+      ? 'W / S o FLECHAS mover — P pausar — M menú'
+      : 'J1: W / S — J2: FLECHAS ARRIBA / ABAJO — P pausar — M menú');
+    setVisible(true);
+    resize();
+    resetMatch();
+  };
+
+  function movePaddles(dt) {
+    const k = st.keys;
+    const one = st.mode === 1;
+    let d1 = 0, d2 = 0;
+    if (k['KeyW'] || (one && k['ArrowUp'])) d1 -= 1;
+    if (k['KeyS'] || (one && k['ArrowDown'])) d1 += 1;
+    st.p1.y = Math.max(0, Math.min(PH - PAD_H, st.p1.y + d1 * PAD_SPEED * dt));
+    if (!one) {
+      if (k['ArrowUp']) d2 -= 1;
+      if (k['ArrowDown']) d2 += 1;
+      st.p2.y = Math.max(0, Math.min(PH - PAD_H, st.p2.y + d2 * PAD_SPEED * dt));
+    }
+  }
+
+  function moveCpu(dt) {
+    const L = AI_LEVELS[st.level], b = st.ball;
+    const target = (b.vx > 0 && b.x > PW * L.zone) ? b.y + st.aiErr : PH / 2;
+    const diff = target - (st.p2.y + PAD_H / 2);
+    if (Math.abs(diff) > 6) {
+      const step = Math.min(Math.abs(diff), L.speed * dt);
+      st.p2.y = Math.max(0, Math.min(PH - PAD_H, st.p2.y + Math.sign(diff) * step));
+    }
+  }
+
+  function bounce(p, px, dir) {
+    const b = st.ball;
+    const rel = Math.max(-1, Math.min(1, (b.y - (p.y + PAD_H / 2)) / (PAD_H / 2 + BALL_R)));
+    const ang = rel * (Math.PI / 3);
+    b.speed = Math.min(b.speed * 1.07, BALL_MAX);
+    b.vx = dir * b.speed * Math.cos(ang);
+    b.vy = b.speed * Math.sin(ang);
+    b.x = dir === 1 ? px + PAD_W + BALL_R : px - BALL_R;
+    beep(dir === 1 ? 520 : 440, 0.06);
+    if (dir === 1 && st.mode === 1) st.aiErr = (Math.random() * 2 - 1) * AI_LEVELS[st.level].err;
+  }
+
+  function point(who) {
+    if (who === 1) st.s1++; else st.s2++;
+    updateHUD();
+    if (st.s1 >= WIN_SCORE || st.s2 >= WIN_SCORE) {
+      st.winner = who;
+      st.phase = 'gameover';
+      beep(660, 0.4, 'triangle');
+      return;
+    }
+    beep(200, 0.25, 'sawtooth');
+    serve(who === 1 ? 1 : -1);
+  }
+
+  function moveBall(dt) {
+    const b = st.ball;
+    const n = Math.max(1, Math.ceil(b.speed * dt / 5));
+    const sdt = dt / n;
+    for (let i = 0; i < n; i++) {
+      b.x += b.vx * sdt;
+      b.y += b.vy * sdt;
+      if (b.y < BALL_R) { b.y = BALL_R; b.vy = Math.abs(b.vy); beep(300, 0.04); }
+      else if (b.y > PH - BALL_R) { b.y = PH - BALL_R; b.vy = -Math.abs(b.vy); beep(300, 0.04); }
+
+      if (b.vx < 0 && b.x >= P1X && b.x - BALL_R <= P1X + PAD_W &&
+          b.y + BALL_R >= st.p1.y && b.y - BALL_R <= st.p1.y + PAD_H) {
+        bounce(st.p1, P1X, 1);
+      } else if (b.vx > 0 && b.x <= P2X + PAD_W && b.x + BALL_R >= P2X &&
+          b.y + BALL_R >= st.p2.y && b.y - BALL_R <= st.p2.y + PAD_H) {
+        bounce(st.p2, P2X, -1);
+      }
+
+      if (b.x < -BALL_R) { point(2); return; }
+      if (b.x > PW + BALL_R) { point(1); return; }
+    }
+    st.trail.push({ x: b.x, y: b.y });
+    if (st.trail.length > 7) st.trail.shift();
+  }
+
+  function update(dt) {
+    if (st.phase === 'ready') {
+      movePaddles(dt);
+      st.readyT -= dt;
+      if (st.readyT <= 0) st.phase = 'playing';
+      return;
+    }
+    if (st.phase !== 'playing') return;
+    movePaddles(dt);
+    if (st.mode === 1) moveCpu(dt);
+    moveBall(dt);
+  }
+
+  function paddle(x, y) {
+    const g = ctx.createLinearGradient(x, 0, x + PAD_W, 0);
+    g.addColorStop(0, '#f0d078'); g.addColorStop(1, '#8b6914');
+    ctx.fillStyle = g;
+    ctx.fillRect(x, y, PAD_W, PAD_H);
+  }
+
+  function overlay(title, color, sub) {
+    ctx.fillStyle = 'rgba(0,0,0,0.7)'; ctx.fillRect(0, 0, PW, PH);
+    ctx.textAlign = 'center';
+    ctx.fillStyle = color; ctx.font = 'bold 30px Orbitron';
+    ctx.fillText(title, PW / 2, PH / 2 - 8);
+    if (sub) { ctx.fillStyle = '#f0d078'; ctx.font = '13px Orbitron'; ctx.fillText(sub, PW / 2, PH / 2 + 24); }
+  }
+
+  function draw() {
+    ctx.fillStyle = '#000'; ctx.fillRect(0, 0, PW, PH);
+    if (st.phase === 'menu') return;
+
+    ctx.strokeStyle = 'rgba(212,168,67,0.35)'; ctx.lineWidth = 3;
+    ctx.setLineDash([12, 12]);
+    ctx.beginPath(); ctx.moveTo(PW / 2, 0); ctx.lineTo(PW / 2, PH); ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.textAlign = 'center';
+    ctx.fillStyle = 'rgba(240,208,120,0.85)'; ctx.font = 'bold 44px Orbitron';
+    ctx.fillText(st.s1, PW / 2 - 70, 60);
+    ctx.fillText(st.s2, PW / 2 + 70, 60);
+    ctx.fillStyle = '#666680'; ctx.font = '11px Orbitron';
+    ctx.fillText('J1', PW / 2 - 70, 80);
+    ctx.fillText(st.mode === 1 ? 'CPU' : 'J2', PW / 2 + 70, 80);
+
+    paddle(P1X, st.p1.y);
+    paddle(P2X, st.p2.y);
+
+    st.trail.forEach((t, i) => {
+      ctx.fillStyle = 'rgba(240,208,120,' + (0.04 + i * 0.03) + ')';
+      ctx.beginPath(); ctx.arc(t.x, t.y, BALL_R * (0.5 + i * 0.07), 0, Math.PI * 2); ctx.fill();
+    });
+    ctx.save();
+    ctx.shadowColor = '#d4a843'; ctx.shadowBlur = 14;
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.arc(st.ball.x, st.ball.y, BALL_R, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+
+    if (st.phase === 'ready') {
+      ctx.textAlign = 'center'; ctx.fillStyle = '#f0d078'; ctx.font = 'bold 20px Orbitron';
+      ctx.fillText('LISTO!', PW / 2, PH - 40);
+    } else if (st.phase === 'paused') {
+      overlay('PAUSA', '#f0d078', 'P: continuar   M: menu');
+    } else if (st.phase === 'gameover') {
+      const txt = st.mode === 1 ? (st.winner === 1 ? 'GANAS!' : 'GANA LA CPU') : (st.winner === 1 ? 'GANA J1' : 'GANA J2');
+      overlay(txt, st.mode === 1 && st.winner === 2 ? '#e04050' : '#40d870', 'ENTER: revancha   M: menu');
+    }
+  }
+
+  function loop(ts) {
+    if (activeGameLoop !== 'pong') { st._looping = false; return; }
+    const dt = Math.min(0.033, (ts - st.last) / 1000 || 0);
+    st.last = ts;
+    update(dt);
+    draw();
+    requestAnimationFrame(loop);
+  }
+
+  // Teclado
+  document.addEventListener('keydown', e => {
+    if (activeGameLoop !== 'pong') return;
+    if (e.code === 'ArrowUp' || e.code === 'ArrowDown' || e.code === 'Space') e.preventDefault();
+    st.keys[e.code] = true;
+    if (e.code === 'KeyP') {
+      if (st.phase === 'playing') st.phase = 'paused';
+      else if (st.phase === 'paused') st.phase = 'playing';
+    }
+    if (e.code === 'Enter' && st.phase === 'gameover') resetMatch();
+    if (e.code === 'KeyM' && (st.phase === 'gameover' || st.phase === 'paused')) showMenu();
+  });
+  document.addEventListener('keyup', e => { delete st.keys[e.code]; });
+  window.addEventListener('blur', () => { st.keys = {}; });
+
+  // Tactil: arrastrar para mover la pala (en 2 jugadores, mitad izquierda J1 / mitad derecha J2)
+  function onTouch(e) {
+    if (activeGameLoop !== 'pong' || st.phase === 'menu') return;
+    e.preventDefault();
+    if (st.phase === 'gameover') { if (e.type === 'touchstart') resetMatch(); return; }
+    const r = cv.getBoundingClientRect();
+    for (const t of e.touches) {
+      const x = (t.clientX - r.left) * PW / r.width;
+      const y = (t.clientY - r.top) * PH / r.height;
+      const p = (st.mode === 2 && x > PW / 2) ? st.p2 : st.p1;
+      p.y = Math.max(0, Math.min(PH - PAD_H, y - PAD_H / 2));
+    }
+  }
+  cv.addEventListener('touchstart', onTouch, { passive: false });
+  cv.addEventListener('touchmove', onTouch, { passive: false });
+
+  window.addEventListener('resize', resize);
+})();
 
 // Inicializar sonido
 updateSoundIcons();
